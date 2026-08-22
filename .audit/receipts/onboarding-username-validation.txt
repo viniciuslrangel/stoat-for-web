@@ -1,0 +1,38 @@
+Onboarding username validation receipt
+Date: 2026-08-21
+
+Server contract
+- stoat-server/crates/delta/src/routes/onboard/complete.rs:15, 21
+  - Username matches ^(\p{L}|[\d_.-])+$
+  - Length is 2 through 32 characters.
+  - Onboarding accepts only username; discriminator is selected server-side.
+- stoat-server/crates/core/database/src/models/users/model.rs:160-179
+  - Discriminators are zero-padded values 0002 through 9998, excluding 0123,
+    1234, repeated digits, 9999, and 1488.
+  - Reserved/promotional patterns are blocked case-insensitively.
+- stoat-server/crates/core/database/src/models/users/model.rs:299-335
+  - Reserved names are admin, revolt, and stoat.
+  - Usernames are decancer-sanitised while retaining capitalization; the
+    server remains authoritative for homoglyph sanitization.
+- stoat-server/crates/core/database/src/models/users/model.rs:384-433
+  - UsernameTaken is returned only when no discriminator remains.
+  - Username matching/discriminator lookup is case-insensitive.
+
+Client mismatch and fix
+- The React onboarding hooks previously checked only a two-character minimum.
+  They accepted invalid charset, length, reserved, and promotional names.
+- Server FailedValidation.error was discarded by auth-error.ts, resulting in
+  “Something went wrong. Try again.”
+- src/lib/onboarding.ts now provides shared Stoat validation used by both
+  useLogin and useRegister. It counts Unicode code points, trims the value
+  sent by onboarding, and mirrors deterministic server rules.
+- src/lib/auth-error.ts now prefers server error/message fields before mapped
+  fallback copy. InvalidUsername and UsernameTaken mappings remain available.
+
+Verification
+- Focused unit tests: 2 files, 20 passed.
+- TypeScript typecheck: passed.
+- Biome check: passed after formatting.
+- Playwright: e2e/username-validation.spec.ts passed.
+- Screenshot reviewed:
+  .audit/receipts/screenshots/onboarding-username-validation.png

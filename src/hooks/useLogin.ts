@@ -6,6 +6,7 @@ import { messageForLoginFailure } from "@/lib/auth-error";
 import { loginWithMfa, loginWithPassword } from "@/lib/authenticate";
 import { completeLogin, finishOnboarding } from "@/lib/complete-login";
 import type { LoginResult, MfaMethod } from "@/lib/login-result";
+import { usernameValidationMessage } from "@/lib/onboarding";
 import {
 	clearPersistedSession,
 	type PersistedSession,
@@ -125,11 +126,12 @@ export function useLogin(): {
 		}
 		const session = status.session;
 		const trimmed = username.trim();
-		if (trimmed.length < 2) {
+		const validationMessage = usernameValidationMessage(trimmed);
+		if (validationMessage) {
 			setStatus({
 				kind: "onboarding",
 				session,
-				error: "Username must be at least 2 characters.",
+				error: validationMessage,
 			});
 			return false;
 		}

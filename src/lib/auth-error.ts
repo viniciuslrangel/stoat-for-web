@@ -3,6 +3,10 @@ export type AuthError = {
 	message: string;
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null;
+}
+
 const LOGIN_MESSAGES: Record<string, string> = {
 	InvalidCredentials: "Email or password is wrong.",
 	UnverifiedAccount:
@@ -19,19 +23,26 @@ const LOGIN_MESSAGES: Record<string, string> = {
 };
 
 export function parseApiError(raw: unknown): AuthError {
-	if (raw === null || typeof raw !== "object") {
+	if (!isRecord(raw)) {
 		return { type: "Unknown", message: "Something went wrong. Try again." };
 	}
-	const record = raw as Record<string, unknown>;
-	if (typeof record.type === "string" && record.type.length > 0) {
+	const serverMessage =
+		typeof raw.error === "string" && raw.error.length > 0
+			? raw.error
+			: typeof raw.message === "string" && raw.message.length > 0
+				? raw.message
+				: undefined;
+	if (typeof raw.type === "string" && raw.type.length > 0) {
 		return {
-			type: record.type,
+			type: raw.type,
 			message:
-				LOGIN_MESSAGES[record.type] ?? "Something went wrong. Try again.",
+				serverMessage ??
+				LOGIN_MESSAGES[raw.type] ??
+				"Something went wrong. Try again.",
 		};
 	}
-	if (typeof record.message === "string" && record.message.length > 0) {
-		return { type: "Unknown", message: record.message };
+	if (serverMessage) {
+		return { type: "Unknown", message: serverMessage };
 	}
 	return { type: "Unknown", message: "Something went wrong. Try again." };
 }

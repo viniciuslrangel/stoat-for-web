@@ -6,6 +6,38 @@ export type OnboardingState = {
 	onboarding: boolean;
 };
 
+export const STOAT_USERNAME_MIN_LENGTH = 2;
+export const STOAT_USERNAME_MAX_LENGTH = 32;
+
+const USERNAME_PATTERN = /^(?:\p{L}|[0-9_.-])+$/u;
+const BLOCKED_USERNAME_PATTERN =
+	/```|(?:discord|rvlt|guilded|stt)\.gg|(?:revolt|stoat)\.chat|https?:\/\//i;
+
+export function usernameValidationMessage(
+	username: string,
+): string | undefined {
+	const trimmed = username.trim();
+	const length = Array.from(trimmed).length;
+
+	if (length < STOAT_USERNAME_MIN_LENGTH) {
+		return "Username must be at least 2 characters.";
+	}
+	if (length > STOAT_USERNAME_MAX_LENGTH) {
+		return "Username must be at most 32 characters.";
+	}
+	if (!USERNAME_PATTERN.test(trimmed)) {
+		return "Username can only contain letters, numbers, underscores, periods, and hyphens.";
+	}
+	if (
+		["admin", "revolt", "stoat"].includes(trimmed.toLocaleLowerCase("en-US")) ||
+		BLOCKED_USERNAME_PATTERN.test(trimmed)
+	) {
+		return "This username is not allowed.";
+	}
+
+	return undefined;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null;
 }

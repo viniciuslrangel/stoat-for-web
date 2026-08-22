@@ -8,6 +8,7 @@ import { messageForAccountFailure } from "@/lib/account-error";
 import { authFeaturesQueryKey, fetchAuthFeatures } from "@/lib/auth-features";
 import { loginWithPassword } from "@/lib/authenticate";
 import { completeLogin, finishOnboarding } from "@/lib/complete-login";
+import { usernameValidationMessage } from "@/lib/onboarding";
 import { createAccount } from "@/lib/register";
 import {
 	clearPersistedSession,
@@ -101,11 +102,12 @@ export function useRegister(): {
 		}
 		const session = status.session;
 		const trimmed = username.trim();
-		if (trimmed.length < 2) {
+		const validationMessage = usernameValidationMessage(trimmed);
+		if (validationMessage) {
 			setStatus({
 				kind: "onboarding",
 				session,
-				error: "Username must be at least 2 characters.",
+				error: validationMessage,
 			});
 			return false;
 		}

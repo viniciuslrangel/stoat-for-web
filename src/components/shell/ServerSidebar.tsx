@@ -6,13 +6,17 @@ import {
 	MicOff,
 	Volume2,
 } from "lucide-react";
+import type { MouseEvent } from "react";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserAvatar } from "@/components/user";
-import type { ServerChannelsSnapshot } from "@/hooks/chat-snapshots";
+import type {
+	ServerChannelSnapshot,
+	ServerChannelsSnapshot,
+} from "@/hooks/chat-snapshots";
 import { useVoiceParticipants } from "@/hooks/useVoiceParticipants";
-import { useVoiceSession } from "@/hooks/useVoiceSession";
+import { useVoiceActions, useVoiceSession } from "@/hooks/useVoiceSession";
 import { displayNameForUser } from "@/lib/display-name";
 import { cn } from "@/lib/utils";
 
@@ -137,6 +141,64 @@ function VoicePreview({ channelId }: { channelId: string }) {
 	);
 }
 
+export function ServerChannelRow({
+	channel,
+	active,
+}: {
+	channel: ServerChannelSnapshot;
+	active: boolean;
+}) {
+	const actions = useVoiceActions();
+	const session = useVoiceSession();
+	const Icon = channelIcon(channel.isVoice);
+	const alreadyInCall =
+		channel.isVoice &&
+		session.channelId === channel.id &&
+		(session.phase === "connecting" ||
+			session.phase === "connected" ||
+			session.phase === "reconnecting");
+
+	function handleDoubleClick(event: MouseEvent<HTMLAnchorElement>) {
+		if (!channel.isVoice || alreadyInCall) {
+			return;
+		}
+		event.preventDefault();
+		void actions.connect(channel.id);
+	}
+
+	return (
+		<div>
+			<Link
+				to="/channel/$channelId"
+				params={{ channelId: channel.id }}
+				title={
+					channel.isVoice
+						? `${channel.name} (double-click to join voice)`
+						: channel.name
+				}
+				aria-label={
+					channel.isVoice
+						? `${channel.name}, double-click to join voice`
+						: channel.name
+				}
+				data-testid={`channel-row-${channel.id}`}
+				data-voice={channel.isVoice ? "true" : undefined}
+				onDoubleClick={handleDoubleClick}
+				className={cn(
+					"flex h-9 items-center gap-2 rounded-md border-[3px] px-2 text-sm font-medium no-underline",
+					active
+						? "border-border active-surface text-foreground"
+						: "border-transparent text-muted-foreground hover:border-border hover:bg-sidebar-accent hover:text-foreground",
+				)}
+			>
+				<Icon className="size-4 shrink-0 text-muted-foreground" />
+				<span className="truncate">{channel.name}</span>
+			</Link>
+			{channel.isVoice ? <VoicePreview channelId={channel.id} /> : null}
+		</div>
+	);
+}
+
 export function ServerSidebar({
 	snapshot,
 	loading,
@@ -168,30 +230,13 @@ export function ServerSidebar({
 									className="h-8 rounded-md border-[3px] border-border bg-sidebar-accent"
 								/>
 							))
-						: channels.map((channel) => {
-								const active = pathname.includes(channel.id);
-								const Icon = channelIcon(channel.isVoice);
-								return (
-									<div key={channel.id}>
-										<Link
-											to="/channel/$channelId"
-											params={{ channelId: channel.id }}
-											className={cn(
-												"flex h-9 items-center gap-2 rounded-md border-[3px] px-2 text-sm font-medium no-underline",
-												active
-													? "border-border active-surface text-foreground"
-													: "border-transparent text-muted-foreground hover:border-border hover:bg-sidebar-accent hover:text-foreground",
-											)}
-										>
-											<Icon className="size-4 shrink-0 text-muted-foreground" />
-											<span className="truncate">{channel.name}</span>
-										</Link>
-										{channel.isVoice ? (
-											<VoicePreview channelId={channel.id} />
-										) : null}
-									</div>
-								);
-							})}
+						: channels.map((channel) => (
+								<ServerChannelRow
+									key={channel.id}
+									channel={channel}
+									active={pathname.includes(channel.id)}
+								/>
+							))}
 				</div>
 			</ScrollArea>
 		</aside>

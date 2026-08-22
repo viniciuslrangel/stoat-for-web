@@ -19,7 +19,9 @@ function ServerHomeScreen() {
 		return <Navigate to="/login" replace />;
 	}
 
-	const loading = gate.status === "loading";
+	const sessionLoading = gate.status === "loading";
+	const channelsLoading = !sessionLoading && snapshot === null;
+	const loading = sessionLoading || channelsLoading;
 	const defaultId = snapshot ? defaultTextChannelId(snapshot.channels) : null;
 
 	if (!loading && defaultId) {

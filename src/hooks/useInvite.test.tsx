@@ -16,6 +16,7 @@ import { sessionAtom } from "@/domain/session";
 import { getStoatClient } from "@/lib/stoat-client";
 
 import {
+	hydrateInviteJoin,
 	inviteErrorCopy,
 	parseInviteJoin,
 	parseInviteResponse,
@@ -40,8 +41,14 @@ function mockClient(memberIds: string[] = []) {
 		configuration: {
 			features: { autumn: { enabled: true, url: "http://cdn.test" } },
 		},
-		servers: { has: (id: string) => members.has(id) },
-		channels: { has: (id: string) => members.has(id) },
+		servers: {
+			has: (id: string) => members.has(id),
+			getOrCreate: vi.fn(),
+		},
+		channels: {
+			has: (id: string) => members.has(id),
+			getOrCreate: vi.fn(),
+		},
 	} as never);
 }
 
@@ -134,6 +141,33 @@ describe("parseInviteJoin", () => {
 		expect(
 			parseInviteJoin({ type: "Group", channel: { _id: "01GROUP" } }),
 		).toEqual({ kind: "group", id: "01GROUP" });
+	});
+});
+
+describe("hydrateInviteJoin", () => {
+	it("hydrates server channels into the client", () => {
+		const getOrCreateChannel = vi.fn();
+		const getOrCreateServer = vi.fn();
+		hydrateInviteJoin(
+			{
+				channels: { getOrCreate: getOrCreateChannel },
+				servers: { getOrCreate: getOrCreateServer },
+			} as never,
+			{
+				type: "Server",
+				server: { _id: "01SERVER", name: "Lounge" },
+				channels: [{ _id: "01CHANNEL", name: "general" }],
+			},
+		);
+		expect(getOrCreateChannel).toHaveBeenCalledWith("01CHANNEL", {
+			_id: "01CHANNEL",
+			name: "general",
+		});
+		expect(getOrCreateServer).toHaveBeenCalledWith(
+			"01SERVER",
+			{ _id: "01SERVER", name: "Lounge" },
+			true,
+		);
 	});
 });
 

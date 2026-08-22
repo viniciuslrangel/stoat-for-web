@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import type { Client } from "stoat.js";
 
 import {
 	type ChannelId,
@@ -159,6 +160,40 @@ export function parseInviteJoin(raw: unknown): InviteDestination {
 	throw new TypeError("Invalid invite join response");
 }
 
+/**
+ * Mirror stoat.js PublicInvite.join: put the joined server/channels into the
+ * live client so the shell does not flash empty while waiting on ServerCreate.
+ */
+export function hydrateInviteJoin(client: Client, raw: unknown): void {
+	const record = asRecord(raw);
+	if (!record) {
+		return;
+	}
+	if (record.type === "Server") {
+		const channels = Array.isArray(record.channels) ? record.channels : [];
+		for (const channel of channels) {
+			const row = asRecord(channel);
+			const id = asNonEmptyString(row?._id);
+			if (id) {
+				client.channels.getOrCreate(id, channel as never);
+			}
+		}
+		const server = asRecord(record.server);
+		const serverId = asNonEmptyString(server?._id);
+		if (server && serverId) {
+			client.servers.getOrCreate(serverId, server as never, true);
+		}
+		return;
+	}
+	if (record.type === "Group") {
+		const channel = asRecord(record.channel);
+		const id = asNonEmptyString(channel?._id);
+		if (channel && id) {
+			client.channels.getOrCreate(id, channel as never);
+		}
+	}
+}
+
 export async function loadInvitePreview(code: string): Promise<InvitePreview> {
 	const client = getStoatClient();
 	await client.initConfig();
@@ -170,9 +205,11 @@ export async function loadInvitePreview(code: string): Promise<InvitePreview> {
 }
 
 export async function joinInvite(code: InviteCode): Promise<InviteDestination> {
+	const client = getStoatClient();
 	const body = await stoatRequest(`/invites/${encodeURIComponent(code)}`, {
 		method: "POST",
 	});
+	hydrateInviteJoin(client, body);
 	return parseInviteJoin(body);
 }
 

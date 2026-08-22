@@ -11,10 +11,18 @@ export default defineConfig({
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
+	expect: {
+		toHaveScreenshot: {
+			animations: "disabled",
+			caret: "hide",
+			maxDiffPixelRatio: 0.02,
+		},
+	},
 	use: {
 		baseURL: previewUrl,
 		trace: "on-first-retry",
 		screenshot: "only-on-failure",
+		viewport: { width: 1280, height: 720 },
 	},
 	projects: [
 		{

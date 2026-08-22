@@ -1,0 +1,6 @@
+settings-logout
+result=PASS
+url=http://127.0.0.1:4173/login/auth
+path=Settings → My Account → Log out → confirm → /login/auth
+assert=real login form visible and settings shell absent
+screenshot=/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/settings-logout-login.png

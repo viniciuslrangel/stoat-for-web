@@ -1,0 +1,59 @@
+VERDICT: PASS
+
+Resizable channel/member panels + member-list collapse, persisted via shared Jotai prefs.
+
+Date: 2026-08-21
+Worktree: /home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react
+Dev: http://127.0.0.1:3000 (vp dev --port 3000)
+Account: E2E from gitignored .env.test (password not recorded)
+Channel: /channel/01M0J8S8MC2K5BQVNH73HXCTAM (# General)
+
+## How resize works
+
+Pointer-drag `PanelResizeHandle` on the channel-list right edge and member-list left edge.
+Widths clamp (channel 180–400, members 180–360) and write through
+`channelListWidthAtom` / `memberListWidthAtom` in `src/state/prefs.ts`
+(`atomWithStorage`, keys `stoat.web.prefs.*`). Main chat takes leftover flex space.
+Server rail stays 56px.
+
+## Collapse UX
+
+Channel header Users button (`toggle-member-list`) overrides `showsMemberList` via
+`membersCollapsedAtom`. Collapsed state shows a slim right-edge chevron
+(`expand-member-list`). Same button expands again. Pref persisted.
+
+## Screenshots (visual review)
+
+| Shot | Path | Notes |
+|------|------|-------|
+| Channel wider | `.audit/receipts/screenshots/panels-channel-wide.png` | Discord chrome; channel pane ~325px; members visible |
+| Channel narrower | `.audit/receipts/screenshots/panels-channel-narrow.png` | Channel pane ~202px; chat + members still present |
+| Members visible | `.audit/receipts/screenshots/panels-members-visible.png` | Member list "1 ONLINE"; header Users toggle |
+| Members collapsed | `.audit/receipts/screenshots/panels-members-collapsed.png` | No member list; expand strip at right; still # General |
+
+Visual PASS: signed-in Discord-like chrome (rail, sidebar, chat), not stub h1-on-white.
+
+## Measured (Playwright)
+
+- channelWidth 248 → 325 → 202 (drag)
+- memberWidth 240 → 253 (drag), then null when collapsed
+- localStorage `stoat.web.prefs.channelListWidth` / `memberListWidth` / `membersCollapsed` updated
+- Machine JSON: `.audit/receipts/resizable-panels.json`
+
+## Verify
+
+- vp test --run src/state/prefs.test.ts: 14 passed
+- pnpm exec tsc --noEmit: pass
+- biome check on touched files: pass
+- No commit
+
+## Files
+
+- src/state/prefs.ts (shared prefs module; sibling-owned friends/settings keys kept)
+- src/state/prefs.test.ts
+- src/components/shell/PanelResizeHandle.tsx
+- src/components/shell/AppShell.tsx
+- src/components/shell/ServerSidebar.tsx
+- src/components/shell/HomeSidebar.tsx
+- src/components/chat/ChatPane.tsx
+- src/components/chat/MemberList.tsx

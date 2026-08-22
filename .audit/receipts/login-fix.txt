@@ -1,0 +1,46 @@
+VERDICT: FRONTEND FIXED
+
+Date: 2026-08-21
+API: https://stoat.viniciusrangel.dev/api
+
+Diagnosis
+
+The referenced account had a valid session. The server returned 401 from
+GET /users/@me because the account had not completed onboarding. The same
+session was accepted by /auth/account/, /auth/session/all, and
+/onboard/hello, which returned onboarding=true. The control account returned
+onboarding=false and /users/@me succeeded.
+
+The React rewrite logged in, persisted the provisional session, and called
+establishSession. That path tried /users/@me before checking onboarding, then
+mapped the expected onboarding response to "Something went wrong. Try again."
+The old Solid client checked /onboard/hello first and rendered "Choose a
+username".
+
+The X-Session-Token contract remains unchanged. Bearer Authorization is not
+accepted and was not added as a workaround.
+
+Fix
+
+Login and registration auto-login now call GET /onboard/hello with the
+provisional session token before activation. Onboarding accounts stay
+provisional and render a username form with a two-character minimum. POST
+/onboard/complete is sent with the same session header. The client only calls
+establishSession, and therefore /users/@me, after completion succeeds.
+
+Cancel removes the provisional session and returns to anonymous state.
+Username errors remain on the onboarding form so a taken name can be
+corrected. Existing activation failure cleanup and logout teardown remain
+unchanged.
+
+Verification
+
+- TypeScript typecheck passed.
+- Focused authentication tests passed: 10 tests across 4 files.
+- Changed-file Biome check passed.
+- Playwright captured and read the real login form at
+  `.audit/receipts/login-fix-login-form.png`.
+- The onboarding test proves `/users/@me` is not requested before completion.
+
+No credentials, session tokens, or test account values are stored in this
+receipt or its screenshot.

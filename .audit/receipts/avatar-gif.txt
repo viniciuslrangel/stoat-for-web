@@ -1,0 +1,24 @@
+avatar-gif
+broken_url=https://stoat.viniciusrangel.dev/autumn/avatars/UeyOpUj09fM_oiwr3k8YJS5GrppC7ooY0DiIBglSuN
+broken_content_type=image/webp
+broken_gif_magic=false
+broken_note=Autumn resize path converts GIF to static WebP (freezes animation)
+
+fixed_url=https://stoat.viniciusrangel.dev/autumn/avatars/UeyOpUj09fM_oiwr3k8YJS5GrppC7ooY0DiIBglSuN/original
+fixed_content_type=image/gif
+fixed_gif_magic=true
+fixed_note=SDK animatedAvatarURL / createFileURL(true) appends /original for image/gif
+
+rail_img_src=https://stoat.viniciusrangel.dev/autumn/avatars/UeyOpUj09fM_oiwr3k8YJS5GrppC7ooY0DiIBglSuN/original
+rail_live_content_type=image/gif
+rail_live_gif_magic=true
+screenshot=.audit/receipts/screenshots/avatar-gif-rail.png
+png_cannot_prove_animation=true
+
+wiring:
+- src/lib/avatar-url.ts (shared helper for rail/friends/chat)
+- useMeSnapshot / useFriends use userAvatarUrlFromSdk (animatedAvatarURL)
+- meFromRest uses avatarUrlFromRestFile (content_type image/gif -> /original)
+- PresenceAvatar / UserAvatar exported from @/components/user for MessageList sibling
+
+presence: shell-snapshots tests green; Busy -> Do Not Disturb label unchanged

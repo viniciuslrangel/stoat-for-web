@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "url": "http://localhost:3000/channel/01M0J8S8MC2K5BQVNH73HXCTAM",
+  "heading": "General",
+  "placeholder": "Message #General",
+  "rowCount": 5,
+  "emptyVisible": false,
+  "channelClicksAfterServer": 0,
+  "shot": ".audit/receipts/screenshots/server-open-messages.png"
+}

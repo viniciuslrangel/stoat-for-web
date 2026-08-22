@@ -1,0 +1,83 @@
+VERDICT: VALIDATED (root cause corrected)
+
+Auth token investigation, Stoat React rewrite
+Date: 2026-08-21 (original) / 2026-08-22 (re-validation)
+
+API: https://stoat.viniciusrangel.dev/api
+
+## Original claim
+Login returns HTTP 200 Success with a 64-char token, then GET /users/@me returns 401
+(HTML). Auditor concluded the live service issued an unusable session for the
+account, and ruled out client header bugs.
+
+## Re-validation (2026-08-22)
+
+Claim status: VALIDATED for the audited account at audit time; root cause was
+MISDIAGNOSED.
+
+Not a client X-Session-Token / Bearer bug. Not a broken session token. Not an
+issue with the official test account in test-credentials.txt.
+
+### Account under test
+The Playwright receipt used vinicius.l.rangel.test2@gmail.com (not
+test+stoat@viniciusrangel.dev from test-credentials.txt / .env.test).
+
+### Evidence (before repair)
+1. POST /auth/session/login → 200, result Success, token length 64,
+   user_id 01M0KD7JREXB0PTGSKVTGV5YMJ.
+2. GET /users/@me with X-Session-Token → 401 text/html (Rocket default page).
+3. GET /auth/account/ with the same token → 200 JSON (email present).
+4. GET /auth/session/all with the same token → 200 (sessions listed).
+5. GET /onboard/hello with the same token → 200 {"onboarding":true}.
+
+So the session was valid for auth/onboard routes. /users/@me 401 is the API
+behavior for accounts that have not finished onboarding (no user profile yet).
+
+### Control (official test account)
+test+stoat@viniciusrangel.dev:
+- login 200, onboard/hello {"onboarding":false}, /users/@me 200 (stoattest#0124).
+
+### Header contract (confirmed)
+- Correct: X-Session-Token → works when onboarding is false.
+- Wrong: Authorization: Bearer / raw Authorization → 401 HTML (expected).
+- React client / stoat.js use X-Session-Token (correct Stoat contract).
+- Trailing ? on /users/@me is harmless SDK URL construction.
+
+### Client gap
+FEATURES.md still unchecked:
+- Onboarding username step after first login when the server reports onboarding
+- GET /onboard/hello and POST /onboard/complete
+
+Old Solid client (Controller / FlowLogin) calls GET /onboard/hello after login
+and shows "Choose a username" before connect/@me. React rewrite skips that and
+falls through establishSession → GET /users/@me → 401 → generic
+"Something went wrong. Try again."
+
+### Side effect during re-validation
+POST /onboard/complete with username test2fix was issued while probing the
+receipt account. After that: onboard/hello onboarding false, /users/@me 200
+(test2fix#1687). That account is no longer a live repro of the 401.
+
+## Classification
+- Expected API behavior for onboarding:true accounts
+- React client missing onboarding gate/UI (real bug; not header-related)
+- Audit false positive on "live service/session must be repaired"
+
+## Fix applied
+None in source (auth module names were mid-rename in the worktree). Recommended
+fix below.
+
+## Recommended fix
+1. After login Success (and on register auto-login when email verification is
+   off), GET /onboard/hello with X-Session-Token.
+2. If onboarding is true, show username form (min 2 chars); do not call
+   /users/@me or websocket connect yet.
+3. POST /onboard/complete { username }, then establishSession as today.
+4. Cancel clears the provisional session (match old client).
+5. Surface API types such as UsernameTaken with clear copy.
+6. Cover with a unit/integration test that mocks onboard/hello true and asserts
+   @me is not called until complete succeeds.
+
+Screenshot (original): .audit/receipts/screenshots/auth-token-401.png
+(login form + "Something went wrong. Try again." — consistent with @me 401
+mapped through messageForLoginFailure / parseApiError).

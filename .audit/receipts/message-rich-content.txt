@@ -1,0 +1,13 @@
+message-rich-content
+verdict=PASS
+base=http://127.0.0.1:3000
+channel=01M0J8S8MC2K5BQVNH73HXCTAM
+logged_in url=http://127.0.0.1:3000/app
+link=1 code=1 content_img=1 attachment_img=0
+shell=1 message_list=1
+shot=/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/message-rich-content.png
+page_url=http://127.0.0.1:3000/channel/01M0J8S8MC2K5BQVNH73HXCTAM
+pipeline=fences→mentions→autolinks→text via parseMessageContent + MessageContent
+attachments=MessageSnapshot.attachments plain Autumn urls; image kind embeds
+visual_review=PASS
+visual_notes=Discord-like chrome; link; TS code block; W3C image; mention chip intact; system rows untouched

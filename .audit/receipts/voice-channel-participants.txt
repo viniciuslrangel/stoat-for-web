@@ -1,0 +1,4 @@
+verdict=PASS
+channel=01M0JJPAMVTJFEDHXTRF0682ZM
+detail=Audio-only hides the split stage; the tray publishes the local screen-share fixture, renders its video surface, and disables cleanly; forceVoiceStage still shows the call panel; End Call leaves cleanly.
+screenshots=voice-rtc.png,voice-channel-participants.png,voice-rtc-connected.png,voice-controls-audio-only.png,voice-controls-video-stage.png

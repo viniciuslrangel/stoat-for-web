@@ -1,0 +1,58 @@
+VERDICT: PASS (soft dark neo-brutal; not Discord #313338 / blurple clone)
+
+Date: 2026-08-21
+Worktree: /home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react
+Account: stoattest via loginViaUI (.env.test). Password not recorded.
+
+## Palette tokens (.dark)
+
+| Token | Value | Role |
+|-------|-------|------|
+| --ink | #0f0f12 | deepest rail / auth canvas |
+| --sidebar / --panel | #141418 | sidebar / settings nav |
+| --background | #1a1a22 | main / chat / friends |
+| --raised / --card | #1c1c24 | elevated surfaces |
+| --accent / --muted | #2a2a36 / #22222c | hover / secondary |
+| --border | #6a6874 | visible 3px neo-brutal edges |
+| --primary | #8fad9a | muted sage accent (not blurple) |
+| --primary-foreground | #0f0f12 | on sage |
+| --success | #6a9e7a | add-friend / positive |
+| --destructive | #d4646a | danger |
+| --foreground | #e8e6e3 | high-contrast type |
+| --nb-shadow | 4px 4px 0 #e8e6e347 | hard offset |
+| --nb-shadow-strong | 5px 5px 0 #e8e6e361 | cards / dialogs |
+| --radius | 0.2rem | square-ish |
+
+Utilities: `nb-shadow`, `nb-shadow-strong`, `nb-border`, `auth-canvas`.
+
+## What changed
+
+- Encoded soft dark neo-brutal system in `src/styles.css` (CSS variables + utilities).
+- UI primitives (button, card, input, textarea, dialog): thick borders, hard offset shadows, rounded-sm, heavier type.
+- Replaced Discord hex (#313338, #1e1f22, #5865f2, …) in shell / friends / settings / chat / discover / auth with semantic token classes.
+- Auth: branded Stoat hero + patterned ink canvas; chunky sage CTA.
+- Rail: square tiles + sage active (no Discord pill morph / blurple).
+- IA unchanged (rail + sidebar + main, Escape settings, friend → DM).
+
+## Screenshots (opened + reviewed)
+
+| File | URL | Verdict |
+|------|-----|---------|
+| theme-login.png | /login | PASS form+brand card, sage CTA, hard shadow |
+| theme-login-auth.png | /login/auth | PASS login form, thick borders, sage submit |
+| theme-app.png | /app after loginViaUI | PASS rail+sidebar+Home chrome; center #1a1a22 |
+| theme-friends.png | /friends | PASS Friends chrome + empty Online (real empty, not stub) |
+| theme-settings.png | /settings | PASS overlay + My Account; ESC close |
+| theme-channel.png | /channel/$E2E_CHANNEL_ID | PASS server sidebar + #General + composer |
+
+Pixel sample (center main): #1a1a22. No #313338 / #5865f2 dominance. Sage #80a090 on auth CTAs.
+
+## Verify
+
+- vp test --run: 51 files, 203 tests passed
+- Forbidden hooks / stoat-client untouched
+- No commit
+
+## Files touched (visual scope)
+
+~24 component/style files under src/styles.css, src/components/{ui,auth,shell,friends,settings,chat,discover} plus LoginForm.test.tsx heading assert. Receipts under .audit/receipts/.

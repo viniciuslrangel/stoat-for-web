@@ -1,0 +1,22 @@
+chat-avatars
+verdict=PASS
+url=http://127.0.0.1:3000/channel/01M0J8S8MC2K5BQVNH73HXCTAM
+shot=/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/chat-avatars.png
+rows=5
+avatar_imgs=2
+presence_badges=2
+img0_src=https://stoat.viniciusrangel.dev/autumn/avatars/UeyOpUj09fM_oiwr3k8YJS5GrppC7ooY0DiIBglSuN/original
+img0_natural=8
+img0_fallback_hidden=true
+me=stoattest
+me_avatar_file=UeyOpUj09fM_oiwr3k8YJS5GrppC7ooY0DiIBglSuN
+me_content_type=image/gif
+me_expected_url=https://stoat.viniciusrangel.dev/autumn/avatars/UeyOpUj09fM_oiwr3k8YJS5GrppC7ooY0DiIBglSuN/original
+viniciusrangel_found=false
+viniciusrangel_avatar_file=n/a
+viniciusrangel_content_type=n/a
+viniciusrangel_expected_url=n/a
+autumn=https://stoat.viniciusrangel.dev/autumn
+url_build=Message.animatedAvatarURL (GIF-safe) else userAvatarUrlFromSdk else withAutumnOriginal(static, contentType); REST uses avatarUrlFromRestFile → autumnFileUrl
+visual=stoattest avatar is Autumn probe.gif 8x8 red GIF scaled in AvatarImage (not initials). Fallback slot absent.
+notes=Broken path /autumn/avatars/{id} → image/webp freeze. Fixed /autumn/avatars/{id}/original → image/gif.

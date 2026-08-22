@@ -1,0 +1,15 @@
+mentions
+verdict=PASS
+base=http://127.0.0.1:3000
+channel=01M0J8S8MC2K5BQVNH73HXCTAM
+logged_in url=http://127.0.0.1:3000/app
+me_id=01M0J5TJFPARSMZNEHAP0R8570 self_hint=stoattest
+mention_chips=1 raw_syntax_visible=0
+chip_text="@stoattest" chip_title=01M0J5TJFPARSMZNEHAP0R8570
+shot=/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/mentions.png
+page_url=http://127.0.0.1:3000/channel/01M0J8S8MC2K5BQVNH73HXCTAM
+visual=PASS Discord-like chat chrome; message shows "mention-proof @stoattest" as sage chip, not raw <@ULID>
+patterns=<@ULID> user, <#ULID> channel, <%ULID> role, @everyone, @online, :ULID: emoji(token only)
+resolve=usersByIdFromMessages(authorId→authorName) plain Map; Unknown user when missing
+MessageList_swap=<MessageContent content usersById /> on normal rows only; system rows untouched
+tests=16 pass (mentions.test + MessageContent.test)

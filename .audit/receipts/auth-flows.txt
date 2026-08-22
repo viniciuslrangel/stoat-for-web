@@ -1,0 +1,62 @@
+VERDICT: VERIFIED
+
+Auth flow cards, stoat-web-react rewrite
+Date: 2026-08-21
+Worktree: /home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react
+Live host: https://stoat.viniciusrangel.dev
+GET / features: invite_only true, captcha.enabled false, email false
+Password not recorded. No live account created.
+
+## Screens that are real forms
+
+- /login/create (register): email, password, invite, Register. Invite shown from GET / invite_only.
+- /login/create/$code (register-invite): same form, invite prefilled from the URL.
+- /login/resend: email, Resend.
+- /login/reset: email, Reset.
+- /login/reset/$token (reset-confirm): new password, log out of other sessions, Reset.
+
+## Screens that are cards, not title-only stubs
+
+- /login/check: heading, copy, Go back to login. Open {provider} when a prior flow stored an email.
+- /login/verify/$token: heading, spinner then success or failure. demo-token hit the live API and showed "This link is invalid or has expired." Continue to app only when verify returns an MFA ticket.
+- /login/delete/$token: heading, pending copy, then success or failure. demo-token showed the invalid-link error plus Go back to login.
+
+Captcha is skipped: no site key. Register auto-logs in when features.email is false, instead of a dead Check mail page.
+
+## Commands
+
+  export PATH="/home/vinic/.vite-plus/package_manager/pnpm/11.22.0/pnpm/bin:/home/vinic/.vite-plus/bin:$PATH"
+  export CI=true
+  vp test --run
+  pnpm exec tsc --noEmit
+  pnpm exec biome check <owned files>
+
+vp test: owned auth tests passed. Full run: 176 passed, 1 failed in src/components/settings/SettingsOverlay.test.tsx (outside this slice). tsc errors in FriendsPage.test.tsx and chat-snapshots.test.ts are also outside this slice.
+
+## Screenshots (opened and reviewed)
+
+.audit/receipts/screenshots/register.png
+  Create account card. Email, Password, Invite code, Register. Not title-only.
+
+.audit/receipts/screenshots/register-invite.png
+  Create account with invite. Invite field shows demo-invite. Register button.
+
+.audit/receipts/screenshots/check-email.png
+  Check your email card with copy and Go back to login. Not a lone heading.
+
+.audit/receipts/screenshots/resend.png
+  Email field and Resend button.
+
+.audit/receipts/screenshots/reset.png
+  Email field and Reset button.
+
+.audit/receipts/screenshots/reset-confirm.png
+  New password, Log out of other sessions, Reset.
+
+.audit/receipts/screenshots/verify.png
+  Verify email card after live POST with demo-token. Invalid/expired copy plus Go back to login.
+
+.audit/receipts/screenshots/delete-account.png
+  Delete account card after live PUT with demo-token. Error copy plus Go back to login.
+
+Copies also under stoat-vps-worktrees/.audit/receipts/screenshots/. No passwords in files.

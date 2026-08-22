@@ -1,0 +1,12 @@
+presence-avatars
+base=http://127.0.0.1:3000
+rail badge count=1 presence=Online
+rail shot /home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/presence-rail.png url=http://127.0.0.1:3000/app
+friends page presence badges=1
+friends shot /home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/presence-friends.png url=http://127.0.0.1:3000/friends
+rail_ok=true
+friends_badges=1
+Busy_label=Do Not Disturb (domain/presence presenceLabel)
+surfaces=ServerRail self, FriendRow, HomeSidebar DM, FriendProfileDialog
+member_list=skipped (names only, no avatars/user ids)
+friends_all_tab rows=0 friend_row_badges=0 total_badges=1

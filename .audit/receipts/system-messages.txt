@@ -1,0 +1,36 @@
+system-messages
+date: 2026-08-21
+
+verdict: PASS
+
+what was broken:
+MessageList rendered system rows as author "Revolt" + timestamp with empty body because MessageSnapshot only kept `content` and dropped the API `system` discriminant.
+
+fix:
+- New `src/lib/system-message.ts`: parse + format for all Stoat system types (plain data, no SDK in render)
+- `MessageSnapshot.system` + `systemNames` filled at SDK/REST snapshot boundary
+- MessageList branch: muted Discord-like line with ✦, bold names, no normal avatar header
+
+types handled:
+text, user_added, user_remove, user_joined, user_left (server|group), user_kicked, user_banned,
+channel_renamed, channel_description_changed, channel_icon_changed, channel_ownership_changed,
+message_pinned, message_unpinned, call_started
+
+example strings:
+- "Alice joined the server"
+- "Alice left the group"
+- "Bob updated the channel name to lounge"
+- "stoattest updated the channel name to sys-proof-1787324572373" (live)
+
+verify:
+- vp test src/lib/system-message.test.ts src/hooks/chat-snapshots.test.ts — pass
+- tsc — pass
+- biome on touched files — pass
+- Live proof: create Group → PATCH name → open /channel/$id on :3000
+  ui_system_bodies: 1
+  text: "stoattest updated the channel name to sys-proof-1787324572373 12:02 PM"
+  data-system: channel_renamed
+- screenshot: .audit/receipts/screenshots/system-messages.png
+- standing order 17: PASS — readable system copy (not empty Revolt+time)
+
+script notes: E2E General channel had zero system events; proof used a fresh group rename.

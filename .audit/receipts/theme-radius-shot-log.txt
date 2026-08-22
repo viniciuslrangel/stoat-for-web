@@ -1,0 +1,4 @@
+OK login url=http://127.0.0.1:3000/login/auth title=stoat-web -> /home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/theme-radius-login.png
+OK app url=http://127.0.0.1:3000/app title=stoat-web -> /home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/theme-radius-app.png
+OK friends url=http://127.0.0.1:3000/friends title=stoat-web -> /home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/theme-radius-friends.png
+OK channel url=http://127.0.0.1:3000/channel/01M0J8S8MC2K5BQVNH73HXCTAM title=stoat-web -> /home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/theme-radius-channel.png

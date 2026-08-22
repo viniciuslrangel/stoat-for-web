@@ -1,0 +1,5 @@
+user-menu-settings
+url=http://127.0.0.1:4173/settings
+path=avatar menu → User Settings → /settings
+screenshot=/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/user-menu-settings.png
+assert=screen-settings + settings-categories + settings-panel visible

@@ -1,0 +1,9 @@
+verdict=PASS
+scope=late remote ScreenShareAudio subscription after stop watching
+guard=PASS, TrackSubscribed attaches share audio only for explicitly watched participant SIDs
+unit=PASS, focused voice tests: 18 passed
+typecheck=PASS, pnpm typecheck
+biome=PASS, changed voice runtime and screen-share test files
+disconnect_cleanup=CHANGED, terminal room disconnect now invalidates the session and converges to idle state with room ownership cleared
+screenshots=NOT_REQUIRED, UI unchanged
+credentials=REDACTED

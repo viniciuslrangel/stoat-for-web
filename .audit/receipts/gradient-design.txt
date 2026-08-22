@@ -1,0 +1,50 @@
+Gradient design receipt
+
+Status: PASS with pre-existing verification failures noted.
+
+Design
+- Centralized light and dark gradient tokens in src/styles.css.
+- app-canvas adds a low-opacity sage and warm accent wash to main content.
+- rail-surface and sidebar-surface keep the ink and pane hierarchy while adding restrained directional depth.
+- surface-card and surface-ink add a light surface wash to cards and account settings.
+- active-surface and primary-active-surface distinguish selected channels, settings entries, and the active home rail item.
+- auth-canvas reuses the rail gradient and keeps the existing fine diagonal texture.
+- All gradients use existing theme palette tokens and color-mix percentages. No blur, glass panels, or blurple colors were added.
+
+Changed files
+- src/styles.css
+- src/components/shell/AppShell.tsx
+- src/components/shell/ServerRail.tsx
+- src/components/shell/ServerSidebar.tsx
+- src/components/shell/HomeSidebar.tsx
+- src/components/shell/DestinationLanding.tsx
+- src/components/shell/UserVoiceTray.tsx
+- src/components/chat/ChatPane.tsx
+- src/components/chat/MemberList.tsx
+- src/components/ui/card.tsx
+- src/components/settings/SettingsOverlay.tsx
+- src/components/friends/FriendsPage.tsx
+- .audit/verify-gradient-design.mjs
+
+Screenshots
+- .audit/receipts/screenshots/gradient-login.png
+- .audit/receipts/screenshots/gradient-app-shell.png
+- .audit/receipts/screenshots/gradient-channel-chat.png
+- .audit/receipts/screenshots/gradient-settings.png
+
+Visual review
+- PASS. Login shows the expected form and the existing dark textured auth canvas.
+- PASS. App shell shows rail, conversation sidebar, selected Home state, pane boundaries, and a restrained content wash.
+- PASS. Channel route shows server/channel chrome, selected General state, message list, composer, and member pane.
+- PASS. Settings shows category navigation, selected My Account state, account surface, and close affordance.
+- PASS. Text contrast and thick borders remain readable. The gradient effect stays subordinate to hierarchy.
+
+Checks
+- PASS: pnpm typecheck
+- PASS: pnpm build
+- PASS: rendered browser styles expose non-empty app, rail, sidebar, and active-channel background images.
+- PASS: node .audit/verify-gradient-design.mjs repeats the rendered token check against the live channel route.
+- PASS: targeted Biome lint. One existing warning remains for the shared Card import style.
+- PASS: 343 of 344 tests passed. The single failure is the pre-existing SettingsOverlay voice copy expectation and is unrelated to gradient classes.
+- FAIL: pnpm check. The repository has pre-existing Biome formatting and lint diagnostics across unrelated files, plus baseline formatting diagnostics in some touched files. No gradient-specific lint or type error was reported.
+- PASS: no src/components/voice/* or avatar behavior was changed.

@@ -1,0 +1,78 @@
+{
+  "verdict": "PASS",
+  "channelChanged": true,
+  "prefsPersisted": true,
+  "chromeOk": true,
+  "collapseOk": true,
+  "before": {
+    "url": "http://127.0.0.1:3000/channel/01M0J8S8MC2K5BQVNH73HXCTAM",
+    "channelWidth": 248,
+    "memberWidth": 240,
+    "hasMemberList": true,
+    "hasExpand": false,
+    "hasRail": true,
+    "prefs": {
+      "channelListWidth": null,
+      "memberListWidth": null,
+      "membersCollapsed": null
+    }
+  },
+  "wider": {
+    "url": "http://127.0.0.1:3000/channel/01M0J8S8MC2K5BQVNH73HXCTAM",
+    "channelWidth": 325,
+    "memberWidth": 240,
+    "hasMemberList": true,
+    "hasExpand": false,
+    "hasRail": true,
+    "prefs": {
+      "channelListWidth": "325",
+      "memberListWidth": null,
+      "membersCollapsed": null
+    }
+  },
+  "narrower": {
+    "url": "http://127.0.0.1:3000/channel/01M0J8S8MC2K5BQVNH73HXCTAM",
+    "channelWidth": 202,
+    "memberWidth": 240,
+    "hasMemberList": true,
+    "hasExpand": false,
+    "hasRail": true,
+    "prefs": {
+      "channelListWidth": "202",
+      "memberListWidth": null,
+      "membersCollapsed": null
+    }
+  },
+  "afterCollapse": {
+    "url": "http://127.0.0.1:3000/channel/01M0J8S8MC2K5BQVNH73HXCTAM",
+    "channelWidth": 202,
+    "memberWidth": null,
+    "hasMemberList": false,
+    "hasExpand": true,
+    "hasRail": true,
+    "prefs": {
+      "channelListWidth": "202",
+      "memberListWidth": "253",
+      "membersCollapsed": "true"
+    }
+  },
+  "afterExpand": {
+    "url": "http://127.0.0.1:3000/channel/01M0J8S8MC2K5BQVNH73HXCTAM",
+    "channelWidth": 202,
+    "memberWidth": 253,
+    "hasMemberList": true,
+    "hasExpand": false,
+    "hasRail": true,
+    "prefs": {
+      "channelListWidth": "202",
+      "memberListWidth": "253",
+      "membersCollapsed": "false"
+    }
+  },
+  "shots": {
+    "shotWide": "/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/panels-channel-wide.png",
+    "shotNarrow": "/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/panels-channel-narrow.png",
+    "membersShot": "/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/panels-members-visible.png",
+    "collapsedShot": "/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/panels-members-collapsed.png"
+  }
+}

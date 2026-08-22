@@ -1,0 +1,17 @@
+user-avatar-unify
+verdict=PASS
+url=http://127.0.0.1:3000/channel/01M0J8S8MC2K5BQVNH73HXCTAM
+member_shot=/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/user-avatar-member-list.png
+messages_shot=/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/user-avatar-message-authors.png
+tray_shot=/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/user-avatar-user-tray.png
+member_rows=1
+author_avatars=3
+bad_members=0
+bad_authors=0
+sidebar_cutout_ok=true
+online_member_sample={"hasAvatar":true,"roundedFull":true,"thickFaceBorder":false,"roundedSm":false,"hairlineOff":true,"badgeCutoutSidebar":true,"badgePresence":"Online","badgeBorderWidth":"3px"}
+tray={"roundedFull":true,"thickFaceBorder":false,"cutoutSidebar":true,"menuTrigger":true,"settingsLink":true}
+rail_self={"roundedFull":true,"thickFaceBorder":false,"cutoutInk":true}
+stacking=UserAvatar circular face + surface-colored pip border cutout; after:border off when pip shown
+entities=EntityAvatar for server/group/bot/invite; lib/display-initials shared
+tray=UserAccountMenu uses shared UserAvatar; settings gear + mute/deafen/hangup remain UserVoiceTray

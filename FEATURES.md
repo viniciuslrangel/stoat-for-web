@@ -1,0 +1,706 @@
+# Feature inventory
+
+Every feature the React rewrite must implement. Derived from the four explorer audits of the old Solid client in `.audit/explorers/`.
+
+A checked box means the rewrite already ships it. Placeholder routes and stub screens do not count. Everything else is unchecked, including features the old client shipped years ago.
+
+Target instance is `https://stoat.viniciusrangel.dev`, registration is invite only.
+
+## Scaffold and platform
+
+- [x] Vite single page app with React 19 and TypeScript
+- [x] TanStack Router with file-based routes and auto code splitting
+  - [x] Generated route tree at `src/routeTree.gen.ts`
+  - [x] Router factory with scroll restoration and intent preloading
+  - [x] `/` redirects to `/app`
+  - [x] Screen route files generated from `src/domain/screens.ts`, rendering placeholder screens
+- [x] TanStack Query provider with default stale time and retry
+- [x] Jotai atoms for client state
+- [x] Tailwind CSS v4 through the Vite plugin
+- [x] Base UI primitives under `src/components/ui`
+- [x] Theme provider with system default
+- [x] Toast host
+- [x] Tooltip provider
+- [x] Biome format, lint and check scripts
+- [x] Typed environment loader with zod validation of `VITE_STOAT_API_URL`, with an example env file
+- [x] Branded id types and parsers for user, server, channel, message, role, session, invite and bot
+- [x] Test setup file wiring jest-dom into Vitest
+- [x] Playwright config and smoke specs covering the root redirect and every placeholder screen
+- [ ] `#floating` overlay root in `index.html` for modals, settings, context menus and the voice card
+- [ ] Protocol client covering REST and websocket, equivalent to `stoat.js`
+  - [ ] Reactive collections for account, bots, channels, channel unreads, webhooks, emojis, messages, servers, server members, sessions and users
+  - [ ] `X-Session-Token` auth header
+  - [ ] Websocket URL and token passed as query parameters
+  - [ ] Heartbeat ping every 30s with 10s pong timeout
+- [ ] Instance config fetch (`GET /`) before the client is constructed
+  - [ ] Read captcha key, email, invite only, autumn, january, livekit, vapid and limits from it
+- [ ] Configurable host and API URL through build env plus runtime placeholder injection for Docker
+- [ ] Do not fall back to the official host when the API URL is custom
+- [ ] Persisted client state in IndexedDB
+  - [ ] Debounced writes with immediate writes for the auth store
+- [ ] Settings sync worker fetching `/sync/settings/fetch` and applying `UserSettingsUpdate`
+- [ ] Modal controller with a typed modal union and a stack
+- [ ] Context menu system
+- [ ] Snackbar
+- [ ] Device context for phone, tablet and desktop layout, plus screen wake lock
+- [ ] Keybind registry and handlers
+- [ ] Sound controller
+- [ ] i18n catalogs and translated API errors
+- [ ] Theme engine covering light, dark and system, accent, contrast, variant, blur, fonts, message size and group spacing
+- [ ] Virtualized list primitive for conversations, friends and members
+- [ ] PWA manifest and service worker with an update prompt
+- [ ] Multi-instance `/i/:host` prefix (old client routes it then always redirects away, so this is a decision not a port)
+
+## Auth and session
+
+- [ ] Auth shell separate from the app shell
+  - [x] Card layout with title
+  - [ ] Dark mode toggle
+  - [ ] Titlebar
+  - [ ] Footer links for source, social and legal
+- [x] Welcome screen at `/login`
+  - [x] Log in and Sign up entry points
+  - [x] Redirect to the app when a session is already live
+  - [ ] Logged-out panel when the last error was an invalid session, with a dismiss action
+- [x] Login screen at `/login/auth`
+  - [x] Email and password fields with an 8 character password minimum
+  - [x] Links to reset password and resend verification
+  - [x] Back action
+  - [x] Spinner while logging in
+  - [x] No captcha on login, matching the old client
+- [ ] Register screen at `/login/create` and `/login/create/$code`
+  - [ ] Email and new password fields
+  - [ ] Invite field shown when the instance reports invite only
+  - [ ] Invite code prefilled from the URL
+  - [ ] Invisible hCaptcha when a site key is configured
+- [ ] Check mail screen at `/login/check`
+  - [ ] Webmail provider button derived from the email domain
+- [ ] Resend verification screen at `/login/resend`
+- [ ] Reset request screen at `/login/reset`
+- [ ] Reset confirm screen at `/login/reset/$token`
+  - [ ] New password field
+  - [ ] Log out of other sessions checkbox
+- [ ] Verify screen at `/login/verify/$token`
+  - [ ] Spinner, failure state and success state
+  - [ ] Continue to app using the returned MFA ticket
+- [ ] Delete account landing at `/login/delete/$token`
+- [ ] Onboarding username step after first login when the server reports onboarding
+  - [ ] 2 character minimum
+  - [ ] Cancel path
+- [ ] Auth API calls
+  - [x] `POST /auth/session/login` with a friendly name derived from browser and OS
+  - [ ] MFA login loop over password, TOTP and recovery until success or cancel
+  - [x] Disabled account result handled
+  - [ ] `POST /auth/account/create` with captcha and invite
+  - [ ] Check mail when email verification is on, auto login when it is off
+  - [ ] `POST /auth/account/verify/:token`
+  - [ ] `POST /auth/account/reset_password` and `PATCH /auth/account/reset_password`
+  - [ ] `POST /auth/account/reverify`
+  - [ ] `PUT /auth/account/delete`
+  - [ ] `GET /onboard/hello` and `POST /onboard/complete`
+  - [ ] Translated error surface for invalid credentials, unverified account, locked out, compromised password, short password, invalid username, username taken, invalid session and feature disabled
+- [ ] Session lifecycle
+  - [x] Persist session id, token, user id and a valid flag
+  - [x] Restore only sessions marked valid
+  - [x] Mark valid on the first successful websocket ready
+  - [x] Apply the stored session to the client, then connect
+  - [ ] Treat connecting, disconnected, reconnecting and offline as still signed in
+  - [ ] Keep the shell mounted across reconnects once the client has loaded at least once
+  - [ ] Post-login redirect to the stored next path, otherwise the app home
+  - [ ] Logout clears notification state, drops the push subscription, removes the session and calls `POST /auth/session/logout`
+  - [ ] Invalid session drops the session and stops retrying
+  - [ ] Dev and end to end seeding of a valid session
+- [ ] Connection state machine
+  - [x] Client constructed with auto reconnect off and unread sync on
+  - [ ] Exponential backoff retry with jitter
+  - [ ] Offline state when the browser reports no network, with manual reconnect
+  - [ ] Titlebar states for connecting, disconnected, reconnecting and offline
+  - [ ] Policy change modal on ready, acknowledged through `POST /policy/acknowledge`
+  - [ ] Changelog fetched once after login
+- [ ] MFA and account management once signed in
+  - [ ] Reveal email, change username, change email, change password
+  - [ ] Generate, view and reset recovery codes
+  - [ ] Enable TOTP through a ticket, secret and QR code
+  - [ ] Disable TOTP
+  - [ ] Disable account and delete account, with delete blocked while the user owns servers
+  - [ ] Session list with rename, sign out one and sign out all others
+  - [ ] One MFA modal serving both the login challenge and the settings ticket flows
+
+## App shell and navigation
+
+- [x] Logged-in shell
+  - [x] Loading screen until the client has loaded once
+  - [x] Bounce to login when signed out, storing the current path for later
+  - [ ] Disconnected styling on the layout background
+  - [ ] Titlebar with connection status and reconnect action
+  - [ ] Service worker update button in the titlebar
+- [x] Server rail
+  - [ ] Home button with a friend request badge
+  - [ ] User avatar opening the user menu
+    - [ ] Open user settings
+    - [ ] Presence picker for online, idle, focus, busy and invisible
+    - [ ] Add, edit and clear custom status
+    - [ ] Copy id when advanced options are on
+  - [ ] Up to nine unread direct message avatars, with an overflow count
+  - [ ] Server icons with unread, mention, mute and voice overlays
+  - [ ] Server icon links to the last visited channel in that server
+  - [ ] Drag to reorder servers on desktop
+  - [x] Create or join server button
+  - [ ] Discover button on the official instance only
+  - [ ] Settings button
+  - [ ] Keyboard server up and down, wrapping to home
+- [x] Home sidebar
+  - [x] Home entry
+  - [ ] Friends entry with a pending request badge
+  - [ ] Saved Notes entry, creating the channel when missing
+  - [ ] Virtualized direct message and group list
+    - [ ] Presence and status for direct messages
+    - [ ] Member count for groups
+    - [ ] Unread and mention badges
+    - [ ] Close or leave from a context menu
+  - [ ] Create group button
+- [x] Server sidebar
+  - [x] Banner header or plain header
+  - [ ] Official and verified badges
+  - [ ] Server name opens server info
+  - [ ] Settings gear when the user can manage the server
+  - [ ] Categories with collapse state
+  - [ ] Drag to reorder channels and categories on desktop with manage permission
+  - [ ] Channel rows with text or voice icon, custom icon, unread, mute and in-call attention
+  - [ ] Create invite and channel settings actions per row
+  - [ ] Voice participant preview under voice channels
+  - [ ] Keyboard channel up and down
+  - [ ] Mark server as read keybind
+- [ ] Phone layout
+  - [ ] Swipe drawer over the main body
+  - [ ] Persistent sidebars hidden while the drawer is active
+  - [ ] Header chevron closes the drawer instead of collapsing the sidebar
+- [x] Home dashboard
+  - [x] Create group or server
+  - [ ] Join or open the lounge on the official instance
+  - [x] Donate link
+  - [ ] Discover entry on the official instance
+  - [ ] Feedback entry
+  - [x] Open settings
+  - [ ] Development playground link on dev builds
+- [ ] Discover screen
+  - [ ] Embed the discover site in an iframe
+  - [ ] Hide the channel sidebar while keeping the server rail
+  - [ ] Sync the iframe path into the router
+  - [ ] Handle invite and bot messages from the iframe by opening the matching modal
+- [ ] Development playground screen (optional for the rewrite)
+- [ ] Last path persistence
+  - [ ] Home section
+  - [ ] Discover section, defaulting to servers
+  - [ ] Per-server last channel
+- [ ] Deep link trampolines
+  - [ ] `/pwa` restores the last path
+  - [ ] `/settings` opens the settings overlay and leaves the URL
+  - [ ] `/invite/$code` fetches the invite and opens the invite modal
+  - [ ] `/bot/$code` fetches the bot and opens the add bot modal
+- [x] Server home route redirects to the default channel, otherwise shows an empty state
+
+## Messaging and channels
+
+- [x] Channel routes
+  - [ ] `/server/$serverId/channel/$channelId` with an optional trailing message id
+  - [x] `/channel/$channelId` with an optional trailing message id, for direct messages, groups and saved notes
+  - [ ] Missing channel navigates away
+  - [ ] Unknown channel type fallback
+- [ ] Age gate
+  - [ ] Geographic block with region specific copy
+  - [ ] Global 18+ confirmation
+  - [ ] Per-channel allow
+  - [ ] Back and Enter Channel actions
+- [ ] Channel header
+  - [ ] Server and group variant with name and topic
+  - [ ] Direct message variant with username and presence
+  - [ ] Saved Notes variant
+  - [ ] Channel info modal from the name or topic
+  - [ ] Join voice button when the channel is voice capable and the card is hidden
+  - [ ] Channel settings button
+  - [ ] Add friends to group button
+  - [ ] Pins toggle
+  - [ ] Members toggle, hidden for direct messages and saved notes
+  - [ ] Search field on desktop, search icon on phone
+- [ ] Message list
+  - [ ] Initial fetch of 30, pages of 50, display cap of 150 trimming the far end
+  - [ ] Nearby fetch for deep linked messages
+  - [ ] In-memory cache of messages and scroll position when leaving a channel
+  - [ ] Drop the cache on reconnect and refetch when at the end
+  - [ ] Live append on message create only when scrolled to the end
+  - [ ] Collect messages arriving during a fetch and merge them
+  - [ ] Live delete and bulk delete
+  - [ ] Date dividers
+  - [ ] Unread divider, omitted when it would sit alone at the bottom
+  - [ ] Author tail grouping over a 7 minute window, broken by masquerade, system messages, replies and the unread split
+  - [ ] Collapse consecutive blocked-author messages behind a count
+  - [ ] Highlight the deep linked message and clear it on jump to bottom
+  - [ ] Jump to a loaded message, otherwise refetch nearby
+  - [ ] New messages bar seeded from the unread marker
+  - [ ] Jump to present bar when scrolled up
+  - [ ] Typing indicator excluding self and blocked users
+  - [ ] Conversation start header per channel type
+- [ ] Message rendering
+  - [ ] Markdown body
+  - [ ] Hide the body when the content is only a GIF URL with one GIF embed
+  - [ ] Attachments for image, video, audio, generic file and text preview
+  - [ ] Spoiler overlay on spoiler attachments
+  - [ ] Embeds for image, video, website card, text embed and none
+  - [ ] Special embed iframes for YouTube, Twitch, Lightspeed, Spotify, Soundcloud and Bandcamp
+  - [ ] Invite join cards from bare invite URLs
+  - [ ] Reply headers, fetching missing replies and marking mentions
+  - [ ] Reactions with required and optional groups, name tooltips and an add button
+  - [ ] System messages for member add, remove, leave, kick, ban and join
+  - [ ] System messages for group rename, description, icon and ownership
+  - [ ] System messages for pin and unpin, with links
+  - [ ] System messages for call started and call duration
+  - [ ] Username colour from roles, nickname, masquerade name and avatar
+  - [ ] Animated avatar on hover
+  - [ ] Pronouns
+  - [ ] Badges for role icon, platform bridge, official, bot, webhook, silent, new to the instance and new to the server
+  - [ ] Mention highlight styling
+  - [ ] User card and user context menu from the avatar or name
+  - [ ] Edited timestamp
+  - [ ] Compact mode
+  - [ ] Hover toolbar with reply, react, edit, delete and overflow
+- [x] Composition
+  - [ ] Markdown editor with autocomplete and inline widgets for mentions and emoji
+  - [x] Enter sends, except inside a fenced code block
+  - [ ] Ctrl+Enter sends on phone
+  - [ ] Arrow up on an empty box edits the last own message
+  - [ ] Optional visible send button
+  - [ ] Draft text and replies persisted per channel
+  - [ ] Outbox rows for sending, failed and unsent messages
+  - [ ] Retry and delete failed drafts
+  - [ ] Send with an idempotency key
+  - [ ] Silent message prefix stripped before send
+  - [ ] Slowmode countdown, bypass indicator and blocked send
+  - [ ] Length warning near the limit and a hard maximum
+  - [ ] Placeholder copy per channel type
+  - [ ] Blocked composer copy without send permission
+  - [ ] Escape pops the last reply, otherwise the last file
+  - [ ] Focus composer on a printable keypress
+  - [ ] Autocomplete over members, users, roles, channels and emoji
+- [ ] Files
+  - [ ] Multi-file picker
+  - [ ] Paste files, ignoring plain text clipboard items
+  - [ ] Drag and drop anywhere with a dim overlay, disabled while a modal is open
+  - [ ] Reject oversized files with an error modal
+  - [ ] Image previews with dimensions in a carousel
+  - [ ] Upload progress per file
+  - [ ] Cap attachments per message and keep leftovers in the draft
+  - [ ] Upload to the media host over XHR with session auth
+  - [ ] Reuse an already uploaded file id on retry
+- [ ] Pickers
+  - [ ] Emoji picker with unicode and server custom emoji
+  - [ ] Emoji picker inserts into the composer or reacts to a message depending on context
+  - [ ] GIF picker with search and direct send
+- [ ] Message actions
+  - [ ] Edit inline, cancel with escape, empty edit prompts delete
+  - [ ] Delete with a preview confirm, skipped on shift click
+  - [ ] Pin and unpin with a confirm, skipped on shift click
+  - [ ] Reply chips with a mention toggle that persists the default, ignoring duplicates and capped
+  - [ ] React and unreact, remove one emoji as a moderator, clear all as a moderator
+  - [ ] Report message
+  - [ ] Copy text, copy message link and copy id
+  - [ ] Mark as unread
+  - [ ] Admin panel link when advanced options are on
+- [ ] Permissions respected in the channel
+  - [ ] SendMessage, UploadFiles, React, ManageMessages, BypassSlowmode, InviteOthers, Connect
+- [ ] Markdown pipeline
+  - [ ] GFM including tables, strikethrough and task lists
+  - [ ] Hard line breaks
+  - [ ] Math with double dollar delimiters only
+  - [ ] Syntax highlighted code fences
+  - [ ] User, role, everyone and online mentions
+  - [ ] Channel mentions
+  - [ ] Custom and unicode emoji with pack support and big emoji sizing
+  - [ ] Spoilers revealed on click
+  - [ ] Unix timestamp tokens with format suffixes
+  - [ ] Autolinked URLs
+  - [ ] Raw images, media and scripts blocked in messages
+  - [ ] Sanitiser for nested quotes, HTML tag lines, plus-sign lists, empty lines and spoilers eating trailing URLs
+  - [ ] Link warning on mismatched or external links
+- [ ] Search and pins sidebar
+  - [ ] Query sidebar with relevance, latest and oldest sorting
+  - [ ] Pins mode reusing the same sidebar
+  - [ ] Result rows link to the message path
+  - [ ] Close sidebar keybind
+- [ ] Member sidebar
+  - [ ] Hoisted roles, then online, then offline
+  - [ ] Hide members without view access in restricted channels
+  - [ ] Large server mode that skips full member sync
+  - [ ] Group variant listing recipients with a count
+- [ ] Image viewer
+  - [ ] Lightbox for attachments, website images and GIFs
+  - [ ] Pan and zoom
+  - [ ] Copy image as PNG, copy URL and save through a blob download
+  - [ ] Open in a new tab
+- [ ] Unread and acknowledgement correctness
+  - [ ] Optimistic local last-acked id
+  - [ ] Debounced acknowledgement request with a forced flush deadline
+  - [ ] Flush on channel unmount, page hide and visibility hidden
+  - [ ] Persist last-acked ids per user in local storage
+  - [ ] Merge persisted acks over the server unread sync on connect and replay them
+  - [ ] Acknowledge when the document is visible and the list is at the end, not merely focused
+  - [ ] Never acknowledge saved notes
+  - [ ] A non-empty mention set keeps a channel unread
+  - [ ] Mark as unread survives the next automatic acknowledgement
+  - [ ] Mark channel, category and server as read
+- [ ] Notifications
+  - [ ] Per-channel and per-server mode of default, all, mention or none
+  - [ ] Mute for 15 minutes, 1 hour, 3 hours, 8 hours, 24 hours or until turned off
+  - [ ] Channel mute inherits the server mute
+  - [ ] Desktop notification on message create
+  - [ ] Skip rules for focus, self, blocked authors, muted channels, none mode, mention-only mode, busy presence, focus presence and saved notes
+  - [ ] Notification click navigates to the message
+  - [ ] Message sound
+  - [ ] Permission request on the first document click
+  - [ ] Push subscribe and unsubscribe with VAPID
+- [ ] Typing
+  - [ ] Send begin typing at most every 2.5 seconds while composing
+  - [ ] Send end typing on send and one second after the last keypress
+- [ ] Realtime events the UI depends on
+  - [ ] Ready snapshot of users, servers, channels, members, emojis, voice states and policy changes
+  - [ ] Message create, update, append, delete and bulk delete
+  - [ ] Channel create, update and delete, plus group join and leave
+  - [ ] Server create, update and delete, roles, member join, update and leave
+  - [ ] User update, relationship and presence
+  - [ ] User settings update
+  - [ ] Voice channel join, leave and move, plus user voice state update
+
+## Friends and direct messages
+
+- [ ] Friends screen
+  - [ ] Tabs for online, all, pending and blocked
+  - [ ] Pending split into incoming and outgoing
+  - [ ] In-page navigation rail distinct from the server rail
+  - [ ] Virtualized lists with presence
+  - [ ] Row click opens the profile modal, not a direct message
+  - [ ] Context menu for every other action
+  - [ ] Incoming request badges on the friends entry and the home sidebar
+- [ ] Friend lifecycle
+  - [ ] Add by username and discriminator
+  - [ ] Accept incoming and reject incoming
+  - [ ] Cancel outgoing
+  - [ ] Remove friend
+  - [ ] Block and unblock
+  - [ ] No friend actions on self or bots, message still available for bots
+  - [ ] Report user
+- [ ] Direct messages and groups
+  - [ ] Conversation list of active direct messages and groups sorted by recency
+  - [ ] Open or create a direct message from a profile or context menu
+  - [ ] Closed direct messages drop out of the list until reopened
+  - [ ] Close a direct message
+  - [ ] Create a group with a name and multiple friends
+  - [ ] Add friends to an existing group
+  - [ ] Remove a group member
+  - [ ] Leave a group
+  - [ ] Group member sidebar
+  - [ ] Saved Notes channel found or created on demand
+- [ ] User profile modal
+  - [ ] Banner, avatar, status, badges, roles, joined date and bio
+  - [ ] Profile actions
+  - [ ] Mutual friends list
+  - [ ] Mutual groups and servers list
+  - [ ] Role assignment view
+
+## Servers
+
+- [ ] Create a server with a name and a policy link
+- [ ] Create or join chooser
+- [ ] Join by invite code or link, parsing both short links and full URLs
+- [ ] Invite modal previewing the server and joining, or noting the user is already a member
+- [ ] Create an invite from a channel or from the first invitable channel
+- [ ] Invite card rendered from a bare invite link in chat
+- [ ] Leave a server with an optional silent flag, hidden for the owner
+- [ ] Report a server
+- [ ] Server info modal with settings, edit identity and report actions
+- [x] Default channel redirect from the server root
+- [ ] Categories
+  - [ ] Create category
+  - [ ] Rename category
+  - [ ] Delete category
+  - [ ] Mark category as read
+- [ ] Channels
+  - [ ] Create text or voice channel, optionally inside a category
+  - [ ] Delete channel
+  - [ ] Mark channel as read
+- [ ] Members
+  - [ ] Kick a member
+  - [ ] Ban a member with a reason and an optional message purge window
+  - [ ] Ban a user who is not a member
+  - [ ] Edit nickname and per-server avatar
+  - [ ] Assign roles, respecting hierarchy
+  - [ ] Mention a member from the context menu in server text channels
+- [ ] Server member sync, skipping the full fetch for large servers
+
+## Voice and RTC
+
+- [ ] Connection
+  - [ ] Race the configured LiveKit nodes and pick the first that answers
+  - [ ] Join through the channel join call endpoint, then connect the room
+  - [ ] Auto subscribe disabled
+  - [ ] Session counter so overlapping connect and disconnect cannot leak a room
+  - [ ] Screen wake lock held while connected
+  - [ ] Permission denial does not open an error modal, other errors do
+  - [ ] Status states for connecting, connected, reconnecting and disconnected
+- [ ] Entry points
+  - [ ] Pre-join card in the channel
+  - [ ] Header join button
+  - [ ] Switch to this channel while already in another call
+- [ ] Microphone and deafen
+  - [ ] Speak permission gates the mic button
+  - [ ] Persist the mic state and sync it from LiveKit publications
+  - [ ] Apply the desired mic state on connect and reconnect
+  - [ ] Serialize mute and deafen toggles
+  - [ ] Unmuting while deafened also undeafens
+  - [ ] Deafen mutes inbound voice only
+  - [ ] Deafen keeps screen share audio audible
+  - [ ] Publish the deafen attribute when the token allows metadata updates, and keep working when it does not
+  - [ ] Headset-off icon on remote tiles from the attribute
+- [ ] Audio processing
+  - [ ] RNNoise enhanced noise suppression as the default
+  - [ ] Browser noise suppression and disabled as the other options
+  - [ ] Migrate legacy boolean noise suppression values
+  - [ ] Echo cancellation and automatic gain control toggles
+  - [ ] Input and output volume from 0 to 300 percent
+  - [ ] A volume of 0 stays silent instead of falling back to full volume
+  - [ ] Per-user volume and mute
+  - [ ] Per-share volume and mute, muted by default
+- [ ] Camera
+  - [ ] 720p at 30fps capture
+  - [ ] Gated by the instance video limit
+- [ ] Screen share
+  - [ ] Low profile at 720p30, always available
+  - [ ] High profile at 1080p60 and 12 Mbps
+  - [ ] Gaming profile at 1080p60 and 18 Mbps
+  - [ ] Text profile at source resolution and 5fps
+  - [ ] High, gaming and text require the instance resolution limit to allow 1080p
+  - [ ] Default quality is gaming
+  - [ ] Ask before sharing, on by default
+  - [ ] Share audio option with gain control, echo cancellation and noise suppression off
+  - [ ] Publish without simulcast and prefer framerate over resolution when degrading
+  - [ ] Apply quality through track constraints and content hint after capture starts
+  - [ ] Stopping the track from the browser UI unpublishes the share
+- [ ] Opt-in watching
+  - [ ] Remote screen shares are not subscribed automatically
+  - [ ] Unwatched shares render a placeholder tile with a play affordance
+  - [ ] Resume watching subscribes video and audio
+  - [ ] Stop watching unsubscribes both and clears focus if that track was focused
+  - [ ] Resume watching from the tile, the grid button, the focus bar and the context menu
+- [ ] Layout
+  - [ ] Grid view
+  - [ ] Focus view requiring at least two video tracks
+  - [ ] Clicking the focused tile clears focus
+  - [ ] Video-only filter hiding tiles without active video
+  - [ ] Hide and show the strip of other participants
+  - [ ] Fullscreen on the overlay root
+  - [ ] Idle hide of controls after four seconds on pointer devices
+  - [ ] Picture in picture card when navigating away from the channel
+  - [ ] Drag the picture in picture card and snap to corners
+  - [ ] Return to voice channel action from the picture in picture card
+- [ ] Call and chat split
+  - [ ] Preview pane of 148px before joining
+  - [ ] Draggable splitter while in the call
+  - [ ] Persisted split ratio, defaulting to 0.4 and clamped between 0.15 and 0.85
+  - [ ] Minimum pane sizes for both the call and the chat
+- [ ] Participants
+  - [ ] Pre-join preview from the server voice participant map
+  - [ ] Sidebar preview under voice channels
+  - [ ] Sidebar switches to live LiveKit state when connected to that channel
+  - [ ] Per-participant icons for muted, deafened, camera and screen share
+  - [ ] Context menu with volume, mute, stop watching and resume watching
+- [ ] End call
+  - [ ] Disconnect and reset all room state
+  - [ ] Optimistically remove the local user from the voice participant map
+- [ ] Sounds for join voice, leave voice, mute, unmute, deafen, undeafen, stream start and stream end
+
+## Settings
+
+Settings are an overlay with internal pages, not URL routes. The `/settings` path is a trampoline.
+
+- [ ] Settings overlay shell
+  - [ ] Full viewport portal
+  - [ ] Sidebar plus content layout with breadcrumb navigation
+  - [ ] Slide drawer presentation on phone
+  - [ ] Opened with a user, server or channel configuration
+  - [ ] Pop the overlay when the target server or channel disappears
+- [ ] User settings
+  - [ ] Account card entry point
+  - [ ] Account page with email, username, password, MFA, disable and delete
+  - [ ] Profile page with display name, avatar, pronouns, banner and bio
+  - [ ] Per-server identity editor
+  - [ ] Sessions page
+  - [ ] My Bots list
+    - [ ] Create bot
+    - [ ] Bot detail with token reset, public toggle, invite, profile editor and delete
+  - [ ] Feedback page with issue and suggestion links
+  - [ ] Voice and Video page
+    - [ ] Input and output device pickers
+    - [ ] Input and output volume
+    - [ ] Noise suppression mode
+    - [ ] Echo cancellation and automatic gain control
+    - [ ] Screen share quality and always-ask toggle
+    - [ ] Title changes when video is disabled on the instance
+  - [ ] Appearance page
+    - [ ] Light, dark and system
+    - [ ] Accent, contrast and variant
+    - [ ] Blur
+    - [ ] Message size and group spacing
+    - [ ] Interface and monospace fonts
+    - [ ] Show send button
+    - [ ] Unicode emoji pack
+  - [ ] Notifications page
+    - [ ] Desktop notifications
+    - [ ] Push notifications
+    - [ ] Sound toggles for message, mute, unmute, deafen, undeafen, join voice, leave voice, stream start and stream end
+  - [ ] Language page with language, date format and time format
+  - [ ] Advanced page with compact mode, copy id in menus, admin panel shortcuts and experiments
+  - [ ] What's New action fetching the latest changelog
+  - [ ] Source code link
+  - [ ] Donate link
+  - [ ] Log out action
+  - [ ] Version footer
+  - [ ] Premium subscription page, hidden in production
+  - [ ] Accessibility page (stub in the old client, decide before porting)
+  - [ ] Sync page (stub in the old client, decide before porting)
+- [ ] Server settings
+  - [ ] Overview with name, description, icon and banner
+  - [ ] System message channels for join, leave, kick and ban
+  - [ ] Emojis list with upload and delete
+  - [ ] Roles list with drag reordering and create
+  - [ ] Role editor with name, colour, hoist and permissions
+  - [ ] Everyone permissions editor
+  - [ ] Invites list with delete
+  - [ ] Bans list with pardon
+  - [ ] Delete server action for the owner
+  - [ ] Members page (hidden stub in the old client, decide before porting)
+- [ ] Channel settings
+  - [ ] Overview with icon, name and description
+  - [ ] Slowmode for text channels
+  - [ ] Mark as mature
+  - [ ] Permissions overview for text channels
+  - [ ] Per-role and default permission editors
+  - [ ] Inline permissions editor for groups
+  - [ ] Webhooks list with create
+  - [ ] Webhook detail with name, avatar, copy URL and delete
+  - [ ] Delete channel action
+  - [ ] Fix the webhooks visibility condition, which shows the page to everyone in production
+
+## Modals
+
+Every modal below has a working implementation in the old client. All are required unless noted.
+
+- [ ] `add_bot`
+- [ ] `add_friend`
+- [ ] `add_members_to_group`
+- [ ] `ban_member`
+- [ ] `ban_non_member`
+- [ ] `changelog`
+- [ ] `channel_info`
+- [ ] `channel_toggle_mature`
+- [ ] `create_bot`
+- [ ] `create_category`
+- [ ] `create_channel`
+- [ ] `create_group`
+- [ ] `create_group_or_server`
+- [ ] `create_invite`
+- [ ] `create_or_join_server`
+- [ ] `create_role`
+- [ ] `create_server`
+- [ ] `create_webhook`
+- [ ] `custom_status`
+- [ ] `delete_bot`
+- [ ] `delete_category`
+- [ ] `delete_channel`, which also covers leaving a group and closing a direct message
+- [ ] `delete_message`
+- [ ] `delete_role`
+- [ ] `delete_server`
+- [ ] `edit_bot_username`
+- [ ] `edit_category`
+- [ ] `edit_email`
+- [ ] `edit_password`
+- [ ] `edit_username`
+- [ ] `emoji_preview`
+- [ ] `error2`
+- [ ] `image_viewer`
+- [ ] `invite`
+- [ ] `join_server`
+- [ ] `kick_member`
+- [ ] `leave_server`
+- [ ] `link_warning`
+- [ ] `mfa_enable_totp`
+- [ ] `mfa_flow`
+- [ ] `mfa_recovery`
+- [ ] `onboarding` (registered but never opened in the old client)
+- [ ] `pin_message`
+- [ ] `policy_change`
+- [ ] `remove_member`
+- [ ] `rename_session`
+- [ ] `report_content`
+- [ ] `reset_bot_token`
+- [ ] `screen_share_picker`
+- [ ] `screen_share_settings`
+- [ ] `server_identity`
+- [ ] `server_info`
+- [ ] `settings`
+- [ ] `sign_out_sessions`
+- [ ] `signed_out` (registered but never opened in the old client)
+- [ ] `user_profile`
+- [ ] `user_profile_mutual_friends`
+- [ ] `user_profile_mutual_groups`
+- [ ] `user_profile_roles`
+
+Declared in the old client with no renderer. Decide whether to implement or drop.
+
+- [ ] `report_success`
+- [ ] `out_of_date`
+- [ ] `user_picker`
+- [ ] `leave_group`
+- [ ] `close_dm`
+- [ ] `unfriend_user`
+- [ ] `block_user`
+- [ ] `import_theme`
+
+## Context menus
+
+- [ ] Message menu with reply, mark unread, copy text, react, edit, pin, unpin, remove reactions, delete, report, copy link, copy id and file actions
+- [ ] Draft message menu with retry, copy and delete
+- [ ] User menu with profile, message, mention, close chat, notifications, identity, roles, friend actions, kick, ban, remove from group, block, unblock, report and voice controls
+- [ ] Channel menu with mark read, create invite, notifications, create channel, create category, settings, delete, leave group, copy link and copy id
+- [ ] Server menu with mark read, notifications, create invite, identity, settings, report and leave
+- [ ] Category menu with mark read, create channel, create category, rename and delete
+- [ ] Notification submenu with mute durations and mode selection
+
+## Desktop and web differences
+
+Desktop only, gated behind the native bridge.
+
+- [ ] Custom window frame with minimise, maximise and close controls
+- [ ] macOS traffic light drag inset and no custom window buttons
+- [ ] Desktop update slot mounted in the home, friends and channel headers
+- [ ] Native settings page
+  - [ ] Start with computer
+  - [ ] Start minimised to tray
+  - [ ] Minimise to tray
+  - [ ] Custom window frame toggle
+  - [ ] Discord rich presence
+  - [ ] Spellchecker
+  - [ ] Hardware acceleration with restart copy
+  - [ ] Application name reported by the native bridge
+  - [ ] Desktop, Electron, Node and Chrome versions in the footer
+- [ ] Native screen source picker instead of the browser capture dialog
+- [ ] Capture starts at the highest tier while the picker is open, then downgrades on confirm
+- [ ] Wayland virtual microphone swap for share audio
+- [ ] Desktop notification copy referring to the app rather than the tab
+
+Web only.
+
+- [ ] Titlebar acts as a connection banner rather than window chrome
+- [ ] Browser capture dialog with the quality modal and a live preview
+- [ ] Temporary low capture constraints before applying the chosen tier
+- [ ] Push notification toggle in settings
+- [ ] Service worker update prompt
+- [ ] Android install promotion, gated by user agent and origin

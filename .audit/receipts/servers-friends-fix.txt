@@ -1,0 +1,29 @@
+servers-friends-fix
+date: 2026-08-21
+
+root cause:
+React Strict Mode remounts useSessionLifecycle, which called establishSession twice.
+Each call ran Client.connect(), and the second connect disconnected the first socket mid-handshake.
+Ready then arrived while EventClient was Disconnected (state 3), threw, and never hydrated servers/users.
+Session still became ready via the REST /users/@me fallback, so the shell rendered with empty collections.
+Fresh login (single activateSession from the submit handler) worked; reload/session restore did not.
+
+fix:
+src/lib/stoat-client.ts — establishSession is idempotent for a given session key:
+concurrent callers share one in-flight handshake, and a completed Ready for the same userId short-circuits without reconnecting.
+resetStoatClient clears the in-flight handle.
+
+friends empty:
+API/SDK evidence for stoattest after Ready: friendCount=0, relationship_counts={None:1, User:1}.
+UI All tab shows "ALL — 0" / "No friends yet." Empty Online is correct data, not a filter bug.
+
+verify:
+- Playwright :3000 login → TE rail link present
+- reload → TE still present (was empty before fix; WS Unreachable errors gone)
+- /friends → TE still in rail; All = 0 friends
+- vp test --run stoat-client + useServerList (+ shell/friends snapshots): pass
+- screenshots: .audit/receipts/screenshots/app-after-fix.png, friends-after-fix.png
+
+API proof (no password):
+- GET /servers/01M0J8S8MCNJZGXS4E9RKFZTYA owner=01M0J5TJFPARSMZNEHAP0R8570 name=test_e2e_1787319590429
+- SDK Ready ~94ms, servers=[{id:01M0J8S8MCNJZGXS4E9RKFZTYA,name:test_e2e_1787319590429}], friends=[]

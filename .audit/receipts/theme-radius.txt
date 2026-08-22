@@ -1,0 +1,39 @@
+theme-radius
+============
+Option: A (soft chrome + round icons)
+
+Decision
+  Soften neo-brutal chrome radius; keep rail/server/avatar/plus as circles.
+  Rejected B (square icons) — Discord IA + soft dark neo-brutal prefer round faces.
+
+Tokens (src/styles.css)
+  --radius: 0.625rem   (:root and .dark)
+  --radius-sm: calc(var(--radius) * 0.5)   → 0.3125rem
+  --radius-md: calc(var(--radius) * 0.75)  → 0.46875rem
+  --radius-lg: var(--radius)              → 0.625rem (10px)
+  Borders unchanged: 2–3px (--nb-border-width)
+  Shadows unchanged: --nb-shadow / --nb-shadow-strong hard offsets
+
+Role map
+  chrome (cards, inputs, buttons, dialogs, composer): rounded-lg → 10px
+  chrome (sidebar rows, friend rows, settings panels): rounded-md
+  icons (ServerRail home/server/plus/me, avatars, message author): rounded-full
+
+Measured (Playwright, http://127.0.0.1:3000)
+  login card / input / button border-radius: 10px
+  server-rail Home link + avatar: rounded-full
+
+Screenshots (opened + reviewed)
+  .audit/receipts/screenshots/theme-radius-app.png
+    PASS — /app, Discord chrome (rail + Conversations + Home cards), round rail icons, soft card radii, thick borders + hard shadows
+  .audit/receipts/screenshots/theme-radius-login.png
+    PASS — /login/auth login form (email/password/Log in), card+inputs 10px
+  .audit/receipts/screenshots/theme-radius-friends.png
+    PASS — /friends Friends IA, round rail, soft sidebar selection
+  .audit/receipts/screenshots/theme-radius-channel.png
+    PASS — /channel/… channel chrome, round rail, soft composer
+
+vp test --run
+  51 files passed; 3 failures in src/hooks/shell-snapshots.test.ts
+  (MeSnapshot now includes presence: "Invisible" — hooks/data out of SCOPE;
+   not class/radius asserts; left untouched per brief)

@@ -1,0 +1,6 @@
+verdict=PASS
+test=local screen-share publish and cleanup
+detail=Audio-only hides the split stage; the tray publishes the local screen-share fixture, renders its video surface, and disables cleanly; forceVoiceStage still shows the call panel; End Call leaves cleanly.
+screenshots=/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/voice-screen-share.png
+remote_test=SKIP, second account not configured
+known_gaps=browser fixture covers the browser path; set E2E_REMOTE_EMAIL and E2E_REMOTE_PASSWORD for the two-client watch proof; Electron bridge remains deferred

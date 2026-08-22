@@ -1,0 +1,22 @@
+server-open-messages
+date: 2026-08-21
+
+verdict: fixed-by-virtualizer
+
+root cause (one sentence):
+React Compiler + a useRef scroll parent left the message virtualizer with getVirtualItems() empty on first paint after /server/$id → default channel redirect; items only appeared after another channel navigation remounted/updated the list.
+
+fix (already landed by chat-avatars worker e1473a25; not reverted):
+MessageList uses "use no memo", a useState callback ref for the scroll parent, and useMessageVirtualizer enabled only when scrollElement !== null.
+
+additional redirect/query fix: none (first-land messages already load)
+
+verify:
+- Playwright :3000 loginViaUI → home → click TE rail (/server/01M0J8S8MCNJZGXS4E9RKFZTYA) → land on /channel/01M0J8S8MC2K5BQVNH73HXCTAM
+- Assert without second channel click: heading General, composer Message #General, message-row count=5
+- channelClicksAfterServer=0
+- screenshot: .audit/receipts/screenshots/server-open-messages.png
+- standing order 17: PASS (rail + ServerSidebar #General + message rows + composer; not stub/empty)
+
+script: .audit/verify-server-open-messages.mjs
+json: .audit/receipts/server-open-messages.verify.json

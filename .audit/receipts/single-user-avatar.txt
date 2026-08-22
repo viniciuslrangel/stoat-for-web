@@ -1,0 +1,24 @@
+single-user-avatar
+verdict=PASS
+root_cause=ServerRail rendered a second current-user UserAvatar in data-testid=rail-self-avatar while UserVoiceTray already rendered the account avatar and owned its menu and voice controls
+fix=Removed the rail-self-avatar block and the unused me prop from ServerRail; updated both AppShell call sites
+preserved=Server and home icons, channel/member avatars, panel resizing, gradients, UserVoiceTray, UserAccountMenu, presence pip styling, settings gear, and voice controls
+before_screenshot=/home/vinic/.cursor/projects/home-vinic-Documents-stoat-vps/assets/c__Users_vinic_AppData_Roaming_Cursor_User_workspaceStorage_7793a4c0613c79e230c1f9c67394e9a4_images_design-annotation-ff6a79d7-7881-4120-aee6-7e4f69df1c7a.png
+before_visual=FAIL; the supplied annotation shows two current-user avatars at the rail and sidebar boundary
+before_runtime_screenshot=/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/.audit/receipts/screenshots/app-after-login.png
+before_runtime_note=The pre-change shell capture loaded before the user snapshot and did not visibly paint the rail avatar; the prior user-avatar-unify runtime receipt recorded rail_self and tray separately
+after_screenshot=/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/single-user-avatar-after.png
+after_visual=PASS; one current-user avatar remains in the bottom-left UserVoiceTray, the rail retains Home, server, and create-server affordances, and no rail account avatar is visible
+settings_screenshot=/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/user-menu-settings.png
+settings=PASS; avatar menu and gear both opened User Settings, with screen-settings, settings-categories, and settings-panel visible
+voice_screenshots=/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/voice-rtc-connected.png,/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/voice-controls-audio-only.png,/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/voice-screen-share.png,/home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react/.audit/receipts/screenshots/voice-controls-video-stage.png
+voice=PASS; connected tray kept End Call, mute, deafen, screen-share, and the account menu visible
+tests=pnpm test -- src/components/shell/UserAccountMenu.test.tsx
+tests_result=PASS; 1 file and 2 tests
+typecheck=pnpm typecheck
+typecheck_result=PASS
+biome=pnpm exec biome check src/components/shell/ServerRail.tsx src/components/shell/AppShell.tsx e2e/live/app-shell.spec.ts
+biome_result=PASS
+e2e=pnpm exec playwright test e2e/live/app-shell.spec.ts --project=live
+e2e_result=PASS; shell regression asserted rail-self-avatar count 0 and exactly one avatar inside user-tray-avatar-menu
+no_commit=true

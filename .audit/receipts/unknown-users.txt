@@ -1,0 +1,63 @@
+VERDICT: PASS
+
+Unknown users / shared name map, stoat-web-react rewrite
+Date: 2026-08-21
+Worktree: /home/vinic/Documents/stoat_vps/stoat-vps-worktrees/stoat-web-react
+Branch: rewrite/react
+No commit.
+
+## Root cause
+
+1. Message load used `channel.fetchMessages()` (Solid uses `fetchMessagesWithUsers`), so authors not already in Ready never hydrated into `client.users` → snapshot fell back to Unknown / short id.
+2. Mention chips only looked at `usersByIdFromMessages` (authors already in the list), so `@<id>` for members who had not spoken stayed `@Unknown user`.
+3. System `systemNames` could bake short ids and then block the shared member map.
+
+## How names resolve now
+
+Shared path (member-list sibling):
+- `displayNameForUser` — nickname → display name → username → short id
+- `useChannelMembers` / `namesById` — `server.syncMembers` → plain member snapshots
+
+Wired into chat:
+- Authors: `fetchMessagesWithUsers` + `resolveMessageAuthorName` / `displayNameFromSdk`; render uses `displayedAuthorName` with `namesById` when the snapshot is still unresolved
+- Mentions: `ChatPane` passes `namesById` into `MessageList` → `mergeUserNameLookups(namesById, usersByIdFromMessages(messages))` → `resolveUserMention`
+- System lines: snapshot omits unresolved `systemNames`; MessageList `resolveSystemName` prefers resolved snapshot then `namesById` then short id
+- Member list: same `useChannelMembers` cache (no second loader)
+
+## Verify
+
+Command:
+  pnpm exec playwright test unknown-users.spec.ts --config=playwright.unknown.config.ts
+
+Against: http://localhost:3000/channel/$E2E_CHANNEL_ID
+
+Observed:
+- Author labels: stoattest (not Unknown)
+- Mention chip: @stoattest (hasExpected true, hasUnknownUser false)
+- Member list: stoattest under Online
+- unknownInMessages: 0
+- Discord chrome: rail + sidebar + chat + member column
+
+Screenshots (opened and reviewed):
+  .audit/receipts/screenshots/unknown-users-after.png
+  .audit/receipts/screenshots/unknown-users-mention.png
+
+Probe JSON:
+  .audit/receipts/unknown-users.txt
+
+## Unit tests
+
+pnpm exec vp test src/lib/display-name.test.ts src/lib/mentions.test.ts
+(+ chat-snapshots / useMessages / MessageContent still green)
+
+## Files touched (this fix)
+
+- src/hooks/useMessages.ts — fetchMessagesWithUsers; author + system name resolution via display helpers
+- src/hooks/chat-snapshots.ts — displayNameForUser at snapshot/REST boundary
+- src/lib/display-name.ts — displayedAuthorName / isUnresolvedDisplayName
+- src/lib/mentions.ts — skip Unknown placeholders in usersByIdFromMessages
+- src/components/chat/MessageList.tsx — merge namesById; author + system resolution
+- src/components/chat/ChatPane.tsx — pass namesById from useChannelMembers
+- e2e/live/unknown-users.spec.ts + playwright.unknown.config.ts
+
+Did not revert MessageContent, attachments, MemberList, or system-message.ts.

@@ -20,12 +20,25 @@ import {
 	pickLivekitNode,
 } from "@/lib/voice/pick-livekit-node";
 import {
+	effectiveScreenShareElementVolume,
+	getScreenShareMuted,
+	getScreenShareVolume,
+} from "@/lib/voice/screen-share-listener";
+import {
+	applyScreenShareTrackQuality,
+	screenShareCaptureOptions,
+	screenSharePublishOptions,
+	screenShareQualityByName,
+} from "@/lib/voice/screen-share-profile";
+import {
 	IDLE_VOICE_SESSION,
 	type VoiceRoomParticipantSnapshot,
 	type VoiceSessionSnapshot,
 } from "@/lib/voice/types";
 import {
 	patchVoicePrefs,
+	readScreenShareListenerPrefs,
+	readScreenShareQuality,
 	readVoicePrefs,
 } from "@/lib/voice/voice-prefs-bridge";
 import {
@@ -126,7 +139,10 @@ export class VoiceRuntime {
 	#applyingMicFromRoom = false;
 	#wakeLock: WakeLockSentinelLike | null = null;
 	#micAudioElements = new Map<string, HTMLAudioElement>();
-	#screenShareAudioElements = new Map<string, HTMLAudioElement>();
+	#screenShareAudioElements = new Map<
+		string,
+		{ element: HTMLAudioElement; identity: string }
+	>();
 	#watchingLive = new Set<string>();
 	#videoTracks = new Map<string, VideoTrackLike | undefined>();
 	#videoGenerations = new Map<string, number>();
@@ -328,25 +344,24 @@ export class VoiceRuntime {
 			}
 			const enabled = this.#isLocalScreenshareLive(room);
 			try {
-				await room.localParticipant.setScreenShareEnabled(
-					!enabled,
-					!enabled
-						? {
-								audio: true,
-								video: true,
-								contentHint: "motion",
-								selfBrowserSurface: "exclude",
-								systemAudio: "include",
-							}
-						: undefined,
-					!enabled
-						? {
-								source: Track.Source.ScreenShare,
-								degradationPreference: "maintain-framerate",
-								screenShareSimulcastLayers: [],
-							}
-						: undefined,
+				if (enabled) {
+					await room.localParticipant.setScreenShareEnabled(false);
+					this.#emitFromRoom();
+					return;
+				}
+				const quality = screenShareQualityByName(readScreenShareQuality());
+				const publication = await room.localParticipant.setScreenShareEnabled(
+					true,
+					screenShareCaptureOptions(quality),
+					{
+						...screenSharePublishOptions(quality),
+						source: Track.Source.ScreenShare,
+					},
 				);
+				const mediaTrack = publication?.track?.mediaStreamTrack;
+				if (mediaTrack) {
+					await applyScreenShareTrackQuality(mediaTrack, quality);
+				}
 				this.#emitFromRoom();
 			} catch (error) {
 				if (!enabled) {
@@ -553,7 +568,11 @@ export class VoiceRuntime {
 				pub.source === Track.Source.ScreenShareAudio
 			) {
 				if (isWatchingScreenShare(this.#watchingLive, participant.sid)) {
-					this.#attachScreenShareAudio(participant.sid, track.mediaStreamTrack);
+					this.#attachScreenShareAudio(
+						participant.sid,
+						participant.identity,
+						track.mediaStreamTrack,
+					);
 				}
 			}
 			this.#emitFromRoom();
@@ -685,28 +704,29 @@ export class VoiceRuntime {
 
 	#attachScreenShareAudio(
 		participantSid: string,
+		identity: string,
 		mediaTrack: MediaStreamTrack,
 	): void {
 		this.#detachScreenShareAudio(participantSid);
 		const element = document.createElement("audio");
 		element.autoplay = true;
 		element.setAttribute("data-voice-screen-share-sid", participantSid);
+		element.setAttribute("data-voice-screen-share-identity", identity);
 		element.srcObject = new MediaStream([mediaTrack]);
-		element.volume = Math.min(1, Math.max(0, readVoicePrefs().outputVolume));
-		element.muted = false;
+		this.#applyScreenShareAudioPrefs(element, identity);
 		document.body.appendChild(element);
-		this.#screenShareAudioElements.set(participantSid, element);
+		this.#screenShareAudioElements.set(participantSid, { element, identity });
 		void element.play().catch(() => {});
 	}
 
 	#detachScreenShareAudio(participantSid: string): void {
-		const element = this.#screenShareAudioElements.get(participantSid);
-		if (!element) {
+		const entry = this.#screenShareAudioElements.get(participantSid);
+		if (!entry) {
 			return;
 		}
-		element.pause();
-		element.srcObject = null;
-		element.remove();
+		entry.element.pause();
+		entry.element.srcObject = null;
+		entry.element.remove();
 		this.#screenShareAudioElements.delete(participantSid);
 	}
 
@@ -722,15 +742,28 @@ export class VoiceRuntime {
 		}
 	}
 
+	#applyScreenShareAudioPrefs(
+		element: HTMLAudioElement,
+		identity: string,
+	): void {
+		const sharePrefs = readScreenShareListenerPrefs();
+		const muted = getScreenShareMuted(sharePrefs, identity);
+		const shareVolume = getScreenShareVolume(sharePrefs, identity);
+		element.muted = muted;
+		element.volume = effectiveScreenShareElementVolume(
+			readVoicePrefs().outputVolume,
+			shareVolume,
+		);
+	}
+
 	#applyRemoteAudioMuteState(): void {
 		const volume = Math.min(1, Math.max(0, readVoicePrefs().outputVolume));
 		for (const element of this.#micAudioElements.values()) {
 			element.muted = readVoicePrefs().deafen;
 			element.volume = volume;
 		}
-		for (const element of this.#screenShareAudioElements.values()) {
-			element.muted = false;
-			element.volume = volume;
+		for (const entry of this.#screenShareAudioElements.values()) {
+			this.#applyScreenShareAudioPrefs(entry.element, entry.identity);
 		}
 	}
 

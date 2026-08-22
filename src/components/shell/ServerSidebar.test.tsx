@@ -51,6 +51,8 @@ vi.mock("@/hooks/useVoiceSession", () => ({
 		toggleScreenshare: vi.fn(),
 		resumeWatching: vi.fn(),
 		stopWatching: vi.fn(),
+		setScreenShareMuted: vi.fn(),
+		setScreenShareVolume: vi.fn(),
 	}),
 }));
 

@@ -2,9 +2,18 @@ import { getDefaultStore } from "jotai";
 import { useEffect, useSyncExternalStore } from "react";
 
 import type { VoiceSessionSnapshot } from "@/lib/voice/types";
-import { bindVoicePrefs } from "@/lib/voice/voice-prefs-bridge";
+import {
+	bindScreenSharePrefs,
+	bindVoicePrefs,
+} from "@/lib/voice/voice-prefs-bridge";
 import { voiceRuntime } from "@/lib/voice/voice-runtime";
-import { voiceAudioPrefsAtom } from "@/state/prefs";
+import {
+	screenShareListenerPrefsAtom,
+	screenShareQualityAtom,
+	setScreenShareMutedPref,
+	setScreenShareVolumePref,
+	voiceAudioPrefsAtom,
+} from "@/state/prefs";
 
 export function useVoiceSession(): VoiceSessionSnapshot {
 	return useSyncExternalStore(
@@ -25,6 +34,22 @@ export function useVoiceActions() {
 			voiceRuntime.resumeWatching(participantSid),
 		stopWatching: (participantSid: string) =>
 			voiceRuntime.stopWatching(participantSid),
+		setScreenShareMuted: (identity: string, muted: boolean) => {
+			const store = getDefaultStore();
+			store.set(
+				screenShareListenerPrefsAtom,
+				setScreenShareMutedPref(identity, muted),
+			);
+			voiceRuntime.refreshFromPrefs();
+		},
+		setScreenShareVolume: (identity: string, volume: number) => {
+			const store = getDefaultStore();
+			store.set(
+				screenShareListenerPrefsAtom,
+				setScreenShareVolumePref(identity, volume),
+			);
+			voiceRuntime.refreshFromPrefs();
+		},
 	};
 }
 
@@ -38,8 +63,26 @@ export function useVoicePrefsBridge(): void {
 				store.set(voiceAudioPrefsAtom, patch);
 			},
 		);
-		return store.sub(voiceAudioPrefsAtom, () => {
+		bindScreenSharePrefs(
+			() => store.get(screenShareListenerPrefsAtom),
+			(next) => {
+				store.set(screenShareListenerPrefsAtom, next);
+			},
+			() => store.get(screenShareQualityAtom),
+		);
+		const unsubAudio = store.sub(voiceAudioPrefsAtom, () => {
 			voiceRuntime.refreshFromPrefs();
 		});
+		const unsubShare = store.sub(screenShareListenerPrefsAtom, () => {
+			voiceRuntime.refreshFromPrefs();
+		});
+		const unsubQuality = store.sub(screenShareQualityAtom, () => {
+			voiceRuntime.refreshFromPrefs();
+		});
+		return () => {
+			unsubAudio();
+			unsubShare();
+			unsubQuality();
+		};
 	}, []);
 }

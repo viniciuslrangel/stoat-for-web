@@ -28,7 +28,7 @@ describe("VoiceVideoSurface", () => {
 		await user.click(screen.getByTestId("voice-resume-watching"));
 	});
 
-	it("shows stop watching for a live remote share", () => {
+	it("shows stop watching and share audio controls for a live remote share", () => {
 		render(
 			<VoiceVideoSurface
 				surface={{ ...remoteSurface, isLive: true, isWatching: true }}
@@ -37,5 +37,7 @@ describe("VoiceVideoSurface", () => {
 
 		expect(screen.getByTestId("voice-video-surface")).toBeVisible();
 		expect(screen.getByTestId("voice-stop-watching")).toBeVisible();
+		expect(screen.getByTestId("voice-screen-share-mute")).toBeVisible();
+		expect(screen.getByTestId("voice-screen-share-volume")).toBeVisible();
 	});
 });

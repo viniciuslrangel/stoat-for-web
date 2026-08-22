@@ -8,6 +8,18 @@ import {
 } from "@/components/settings/userSettingsPages";
 import type { FriendsTab } from "@/hooks/friends-snapshots";
 import {
+	DEFAULT_SCREEN_SHARE_LISTENER_PREFS,
+	parseScreenShareListenerPrefs,
+	type ScreenShareListenerPrefs,
+	withScreenShareMuted,
+	withScreenShareVolume,
+} from "@/lib/voice/screen-share-listener";
+import {
+	DEFAULT_SCREEN_SHARE_QUALITY,
+	parseScreenShareQualityName,
+	type ScreenShareQualityName,
+} from "@/lib/voice/screen-share-profile";
+import {
 	DEFAULT_VOICE_AUDIO_PREFS,
 	type NoiseSuppressionMode,
 	type VoiceAudioPrefs,
@@ -39,6 +51,8 @@ export const PREFS_KEY = {
 	theme: "stoat.web.prefs.theme",
 	voiceAudio: "stoat.web.prefs.voiceAudio",
 	channelCallSplit: "stoat.web.prefs.channelCallSplit",
+	screenShareListener: "stoat.web.prefs.screenShareListener",
+	screenShareQuality: "stoat.web.prefs.screenShareQuality",
 } as const;
 
 /** @deprecated Legacy keys from an early panels draft; migrate once then drop. */
@@ -307,3 +321,55 @@ export const channelCallSplitAtom = atom(
 		set(rawChannelCallSplitAtom, clampChannelCallSplit(next));
 	},
 );
+
+const rawScreenShareListenerAtom = atomWithStorage(
+	PREFS_KEY.screenShareListener,
+	DEFAULT_SCREEN_SHARE_LISTENER_PREFS,
+	undefined,
+	STORAGE_OPTS,
+);
+
+const rawScreenShareQualityAtom = atomWithStorage<ScreenShareQualityName>(
+	PREFS_KEY.screenShareQuality,
+	DEFAULT_SCREEN_SHARE_QUALITY,
+	undefined,
+	STORAGE_OPTS,
+);
+
+export const screenShareListenerPrefsAtom = atom(
+	(get) => parseScreenShareListenerPrefs(get(rawScreenShareListenerAtom)),
+	(
+		get,
+		set,
+		next:
+			| ScreenShareListenerPrefs
+			| ((current: ScreenShareListenerPrefs) => ScreenShareListenerPrefs),
+	) => {
+		const current = parseScreenShareListenerPrefs(
+			get(rawScreenShareListenerAtom),
+		);
+		const value = typeof next === "function" ? next(current) : next;
+		set(rawScreenShareListenerAtom, parseScreenShareListenerPrefs(value));
+	},
+);
+
+export const screenShareQualityAtom = atom(
+	(get) => parseScreenShareQualityName(get(rawScreenShareQualityAtom)),
+	(_get, set, next: ScreenShareQualityName) => {
+		set(rawScreenShareQualityAtom, parseScreenShareQualityName(next));
+	},
+);
+
+export function setScreenShareMutedPref(
+	identity: string,
+	muted: boolean,
+): (current: ScreenShareListenerPrefs) => ScreenShareListenerPrefs {
+	return (current) => withScreenShareMuted(current, identity, muted);
+}
+
+export function setScreenShareVolumePref(
+	identity: string,
+	volume: number,
+): (current: ScreenShareListenerPrefs) => ScreenShareListenerPrefs {
+	return (current) => withScreenShareVolume(current, identity, volume);
+}

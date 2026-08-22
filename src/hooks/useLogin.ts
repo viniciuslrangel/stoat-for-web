@@ -41,6 +41,7 @@ export function useLogin(): {
 			const completion = await completeLogin(result, setSession);
 			if (completion.kind === "onboarding") {
 				setStatus(completion);
+				return null;
 			} else if (completion.kind === "ready") {
 				setStatus({ kind: "idle" });
 			} else {

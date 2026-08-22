@@ -116,8 +116,12 @@ describe("useLogin", () => {
 		const { result } = renderHook(() => useLogin(), { wrapper });
 		const outcome = await result.current.login("a@b.co", "password1");
 
-		expect(outcome?.kind).toBe("success");
+		expect(outcome).toBeNull();
 		await waitFor(() => expect(result.current.status.kind).toBe("onboarding"));
+		expect(result.current.status).toMatchObject({
+			kind: "onboarding",
+			session: { valid: false, token: "tok_abc" },
+		});
 		expect(activateSession).not.toHaveBeenCalled();
 		expect(fetchMock).toHaveBeenCalledWith(
 			expect.stringContaining("/onboard/hello"),

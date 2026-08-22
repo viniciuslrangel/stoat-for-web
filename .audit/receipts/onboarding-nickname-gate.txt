@@ -1,0 +1,6 @@
+Onboarding nickname gate reproduction
+URL: http://127.0.0.1:4173/login/auth
+Heading: Choose a username
+Username input: visible and editable
+API paths: /api/, /api/auth/session/login, /api/onboard/hello
+Result: provisional login remains on the nickname step; no /users/@me request occurred.
